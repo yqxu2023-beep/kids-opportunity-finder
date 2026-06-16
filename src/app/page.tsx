@@ -112,7 +112,7 @@ function getUpcomingActivities() {
   return opportunities
     .map((opportunity) => ({
       opportunity,
-      startDate: parseLocalDate(opportunity.start_date),
+      startDate: parseLocalDate(opportunity.startDate),
     }))
     .filter(({ startDate }) => startDate !== null && startDate >= today)
     .sort((first, second) => first.startDate!.getTime() - second.startDate!.getTime())
@@ -146,7 +146,7 @@ function UpcomingCard({ opportunity }: { opportunity: Opportunity }) {
           </div>
           <div>
             <dt className="font-black text-slate-500">Starts</dt>
-            <dd className="mt-1 text-slate-950">{formatDate(opportunity.start_date)}</dd>
+            <dd className="mt-1 text-slate-950">{formatDate(opportunity.startDate)}</dd>
           </div>
           <div>
             <dt className="font-black text-slate-500">City</dt>

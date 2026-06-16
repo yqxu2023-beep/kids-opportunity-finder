@@ -10,7 +10,8 @@ export type Opportunity = {
   isFree: boolean;
   cost: string;
   schedule: string;
-  start_date?: string;
+  startDate?: string;
+  endDate?: string;
   location: string;
   registrationUrl: string;
 };
