@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getCategoryIcon } from "@/lib/opportunities";
 import type { Opportunity } from "@/types/opportunity";
 
 type OpportunityCardProps = {
@@ -14,7 +15,7 @@ export function OpportunityCard({ opportunity }: OpportunityCardProps) {
       <div>
         <div className="mb-3 flex flex-wrap gap-2">
           <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-bold text-orange-800">
-            {opportunity.category}
+            {getCategoryIcon(opportunity.categoryGroup)} {opportunity.category}
           </span>
           {opportunity.isFree ? (
             <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800">

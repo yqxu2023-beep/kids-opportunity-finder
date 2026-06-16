@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { OpportunityCard } from "@/components/OpportunityCard";
-import { opportunities } from "@/lib/opportunities";
+import { getCategoryGroup, opportunities } from "@/lib/opportunities";
 
 type OpportunitiesClientProps = {
   initialSearch: string;
@@ -19,11 +19,11 @@ export function OpportunitiesClient({
 }: OpportunitiesClientProps) {
   const [keyword, setKeyword] = useState(initialSearch);
   const [age, setAge] = useState(initialAge);
-  const [category, setCategory] = useState(initialCategory);
+  const [category, setCategory] = useState(initialCategory ? getCategoryGroup(initialCategory) : "");
   const [freeOnly, setFreeOnly] = useState(initialFreeOnly);
 
   const categories = useMemo(() => {
-    return Array.from(new Set(opportunities.map((opportunity) => opportunity.category))).sort();
+    return Array.from(new Set(opportunities.map((opportunity) => opportunity.categoryGroup))).sort();
   }, []);
 
   const filteredOpportunities = opportunities.filter((opportunity) => {
@@ -32,6 +32,7 @@ export function OpportunitiesClient({
       opportunity.title,
       opportunity.provider,
       opportunity.category,
+      opportunity.categoryGroup,
       opportunity.description,
       opportunity.city,
     ]
@@ -41,7 +42,7 @@ export function OpportunitiesClient({
     const matchesKeyword = normalizedKeyword.length === 0 || searchableText.includes(normalizedKeyword);
     const numericAge = Number(age);
     const matchesAge = age === "" || (numericAge >= opportunity.ageMin && numericAge <= opportunity.ageMax);
-    const matchesCategory = category === "" || opportunity.category === category;
+    const matchesCategory = category === "" || opportunity.categoryGroup === getCategoryGroup(category);
     const matchesFree = !freeOnly || opportunity.isFree;
 
     return matchesKeyword && matchesAge && matchesCategory && matchesFree;

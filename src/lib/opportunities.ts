@@ -37,6 +37,74 @@ function normalizeBoolean(value: unknown, fallback = false) {
   return typeof value === "boolean" ? value : fallback;
 }
 
+const exactCategoryGroups: Record<string, string> = {
+  Sports: "Sports",
+  Camps: "Camps",
+  "Library Programs": "Library",
+  "Arts & Culture": "Arts",
+  "Community & Family": "Community",
+  "Local Activities": "Local",
+};
+
+const categoryIcons: Record<string, string> = {
+  Sports: "⚽",
+  Arts: "🎨",
+  Library: "📚",
+  Camps: "🏕️",
+  Community: "👨‍👩‍👧",
+  Local: "📍",
+  Other: "⭐",
+};
+
+export function getCategoryGroup(category: string) {
+  const trimmedCategory = category.trim();
+
+  if (!trimmedCategory) {
+    return "Other";
+  }
+
+  const exactMatch = exactCategoryGroups[trimmedCategory];
+
+  if (exactMatch) {
+    return exactMatch;
+  }
+
+  const normalizedCategory = trimmedCategory.toLowerCase();
+
+  if (normalizedCategory.includes("library")) {
+    return "Library";
+  }
+
+  if (normalizedCategory.includes("art") || normalizedCategory.includes("culture")) {
+    return "Arts";
+  }
+
+  if (normalizedCategory.includes("camp")) {
+    return "Camps";
+  }
+
+  if (
+    [
+      "sport",
+      "soccer",
+      "tennis",
+      "golf",
+      "judo",
+      "gymnastics",
+      "skating",
+      "basketball",
+    ].some((sportKeyword) => normalizedCategory.includes(sportKeyword))
+  ) {
+    return "Sports";
+  }
+
+  return trimmedCategory;
+}
+
+export function getCategoryIcon(category: string) {
+  return categoryIcons[getCategoryGroup(category)] ?? categoryIcons.Other;
+}
+
 function normalizeCost(value: unknown, isFree: boolean) {
   if (isFree) {
     return "Free";
@@ -67,6 +135,7 @@ function normalizeOpportunity(raw: RawOpportunity): Opportunity {
   const isFree = normalizeBoolean(raw.is_free, raw.cost === 0);
   const startDate = normalizeDate(raw.start_date);
   const endDate = normalizeDate(raw.end_date);
+  const category = normalizeString(raw.category, "Other");
   const registrationUrl =
     normalizeString(raw.registration_url) ||
     normalizeString(raw.website) ||
@@ -76,7 +145,8 @@ function normalizeOpportunity(raw: RawOpportunity): Opportunity {
     id: normalizeString(raw.id),
     title: normalizeString(raw.title, "Untitled opportunity"),
     provider: normalizeString(raw.provider, "Unknown provider"),
-    category: normalizeString(raw.category, "Other"),
+    category,
+    categoryGroup: getCategoryGroup(category),
     description: normalizeString(raw.description, "No description available."),
     city: normalizeString(raw.city, "Unknown"),
     ageMin: normalizeNumber(raw.age_min, 0),

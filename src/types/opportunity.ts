@@ -3,6 +3,7 @@ export type Opportunity = {
   title: string;
   provider: string;
   category: string;
+  categoryGroup: string;
   description: string;
   city: string;
   ageMin: number;

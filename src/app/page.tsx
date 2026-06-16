@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { HomeSearch } from "@/components/HomeSearch";
-import { opportunities } from "@/lib/opportunities";
+import { getCategoryIcon, opportunities } from "@/lib/opportunities";
 import type { Opportunity } from "@/types/opportunity";
 
 const categoryCards = [
   {
     title: "Sports",
-    icon: "⚽",
+    icon: getCategoryIcon("Sports"),
     description: "Active programs, teams, and beginner-friendly skill sessions.",
     href: "/opportunities?category=Sports",
     count: countByCategory("Sports"),
@@ -14,7 +14,7 @@ const categoryCards = [
   },
   {
     title: "Arts",
-    icon: "🎨",
+    icon: getCategoryIcon("Arts"),
     description: "Creative workshops, crafts, storytelling, and music activities.",
     href: "/opportunities?category=Arts",
     count: countByCategory("Arts"),
@@ -22,7 +22,7 @@ const categoryCards = [
   },
   {
     title: "Library",
-    icon: "📚",
+    icon: getCategoryIcon("Library"),
     description: "Reading clubs, family programs, and free learning events.",
     href: "/opportunities?category=Library",
     count: countByCategory("Library"),
@@ -30,10 +30,10 @@ const categoryCards = [
   },
   {
     title: "Camps",
-    icon: "🏕",
+    icon: getCategoryIcon("Camps"),
     description: "Seasonal camps, weekend programs, and school-break ideas.",
-    href: "/opportunities?search=camps",
-    count: countByKeyword("camp"),
+    href: "/opportunities?category=Camps",
+    count: countByCategory("Camps"),
     className: "bg-orange-50 text-orange-700",
   },
 ];
@@ -62,24 +62,7 @@ const comingSoon = [
 ];
 
 function countByCategory(category: string) {
-  return opportunities.filter((opportunity) => opportunity.category === category).length;
-}
-
-function countByKeyword(keyword: string) {
-  const normalizedKeyword = keyword.toLowerCase();
-
-  return opportunities.filter((opportunity) => {
-    return [
-      opportunity.title,
-      opportunity.provider,
-      opportunity.category,
-      opportunity.description,
-      opportunity.city,
-    ]
-      .join(" ")
-      .toLowerCase()
-      .includes(normalizedKeyword);
-  }).length;
+  return opportunities.filter((opportunity) => opportunity.categoryGroup === category).length;
 }
 
 function parseLocalDate(value: string | undefined) {
@@ -128,7 +111,7 @@ function UpcomingCard({ opportunity }: { opportunity: Opportunity }) {
       <div>
         <div className="flex flex-wrap items-center gap-2">
           <span className="rounded-full bg-orange-50 px-3 py-1 text-xs font-black text-orange-700">
-            {opportunity.category}
+            {getCategoryIcon(opportunity.categoryGroup)} {opportunity.category}
           </span>
           <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700">
             {opportunity.isFree ? "Free" : opportunity.cost}
