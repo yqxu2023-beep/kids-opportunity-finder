@@ -1,16 +1,15 @@
 import Link from "next/link";
 import { InfoIcon } from "@/components/OpportunityUi";
 import { OpportunityStickerBadge } from "@/components/OpportunityStickerBadge";
-import { getCategoryIcon } from "@/lib/opportunities";
+import { formatOpportunityDate, getCategoryIcon, getOutdatedReportUrl } from "@/lib/opportunities";
 import type { Opportunity } from "@/types/opportunity";
 
 type OpportunityCardProps = { opportunity: Opportunity };
 
 export function OpportunityCard({ opportunity }: OpportunityCardProps) {
   return (
-    <Link
-      href={`/opportunities/${opportunity.id}`}
-      className="group flex h-full flex-col overflow-hidden rounded-[1.35rem] border border-orange-100 bg-white shadow-[0_14px_34px_rgba(194,65,12,0.10)] transition duration-200 hover:translate-y-1 hover:border-orange-500 hover:shadow-[0_18px_42px_rgba(194,65,12,0.14)] focus:outline-none focus:ring-4 focus:ring-orange-100"
+    <article
+      className="group relative flex h-full flex-col overflow-hidden rounded-[1.35rem] border border-orange-100 bg-white shadow-[0_14px_34px_rgba(194,65,12,0.10)] transition duration-200 hover:translate-y-1 hover:border-orange-500 hover:shadow-[0_18px_42px_rgba(194,65,12,0.14)] focus:outline-none focus:ring-4 focus:ring-orange-100"
     >
       <div className="flex flex-1 flex-col p-5">
         <div className="mb-4 flex items-start justify-between gap-3">
@@ -20,7 +19,11 @@ export function OpportunityCard({ opportunity }: OpportunityCardProps) {
           <OpportunityStickerBadge opportunity={opportunity} />
         </div>
 
-        <h2 className="text-xl font-black text-slate-950">{opportunity.title}</h2>
+        <h2 className="text-xl font-black text-slate-950">
+          <Link href={`/opportunities/${opportunity.id}`} className="after:absolute after:inset-0">
+            {opportunity.title}
+          </Link>
+        </h2>
         <p className="mt-2 text-sm font-semibold text-slate-600">
           {opportunity.provider} <span className="text-slate-300">|</span> {opportunity.city}
         </p>
@@ -32,12 +35,23 @@ export function OpportunityCard({ opportunity }: OpportunityCardProps) {
           <InfoRow icon="cost" label="Cost" value={opportunity.cost} />
           <InfoRow icon="location" label="City" value={opportunity.city} />
         </dl>
+        <div className="relative z-10 mt-4 border-t border-slate-100 pt-4 text-xs font-bold text-slate-600">
+          <p>Last updated: {formatOpportunityDate(opportunity.lastUpdated)}</p>
+          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2">
+            <a href={opportunity.officialUrl} target="_blank" rel="noreferrer" className="text-sky-800 underline decoration-sky-200 underline-offset-4 hover:text-sky-600">
+              Source / Official link
+            </a>
+            <a href={getOutdatedReportUrl(opportunity)} className="text-rose-700 underline decoration-rose-200 underline-offset-4 hover:text-rose-600">
+              Report outdated info
+            </a>
+          </div>
+        </div>
       </div>
 
-      <span className="inline-flex w-full items-center justify-center bg-rose-50 px-4 py-3 text-sm font-bold text-orange-700 transition group-hover:bg-orange-600 group-hover:text-white">
+      <Link href={`/opportunities/${opportunity.id}`} className="relative z-10 inline-flex w-full items-center justify-center bg-rose-50 px-4 py-3 text-sm font-bold text-orange-700 transition group-hover:bg-orange-600 group-hover:text-white">
         View Details <span className="ml-2" aria-hidden="true">&rarr;</span>
-      </span>
-    </Link>
+      </Link>
+    </article>
   );
 }
 

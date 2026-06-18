@@ -19,6 +19,7 @@ type RawOpportunity = {
   registration_url?: unknown;
   website?: unknown;
   source?: unknown;
+  last_verified?: unknown;
 };
 
 function normalizeString(value: unknown, fallback = "") {
@@ -140,6 +141,10 @@ function normalizeOpportunity(raw: RawOpportunity): Opportunity {
     normalizeString(raw.registration_url) ||
     normalizeString(raw.website) ||
     normalizeString(raw.source, "#");
+  const officialUrl =
+    normalizeString(raw.website) ||
+    normalizeString(raw.source) ||
+    registrationUrl;
 
   return {
     id: normalizeString(raw.id),
@@ -158,7 +163,48 @@ function normalizeOpportunity(raw: RawOpportunity): Opportunity {
     endDate,
     location: normalizeString(raw.location, "Contact provider"),
     registrationUrl,
+    officialUrl,
+    lastUpdated: normalizeDate(raw.last_verified),
   };
+}
+
+export function formatOpportunityDate(value: string | undefined) {
+  const date = parseLocalDate(value);
+
+  if (!date) {
+    return "Date unavailable";
+  }
+
+  return new Intl.DateTimeFormat("en-CA", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
+}
+
+export function getOutdatedReportUrl(
+  opportunity: Pick<Opportunity, "id" | "title" | "provider" | "city" | "officialUrl">
+) {
+  const subject = `Report an Issue - ${opportunity.title}`;
+  const bodyLines = [
+    `Program name: ${opportunity.title}`,
+    `Provider: ${opportunity.provider}`,
+    `City: ${opportunity.city}`,
+    `Listing URL: /opportunities/${opportunity.id}`,
+    "",
+    "Issue description:",
+    "",
+    "Correct information:",
+    "",
+  ];
+
+  if (opportunity.officialUrl && opportunity.officialUrl !== "#") {
+    bodyLines.push(`Source link (if available): ${opportunity.officialUrl}`);
+  } else {
+    bodyLines.push("Source link (if available):");
+  }
+
+  return `mailto:kidsopportunityfinder@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyLines.join("\n"))}`;
 }
 
 export const opportunities = (opportunitiesData as RawOpportunity[]).map(normalizeOpportunity);

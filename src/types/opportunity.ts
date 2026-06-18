@@ -15,4 +15,6 @@ export type Opportunity = {
   endDate?: string;
   location: string;
   registrationUrl: string;
+  officialUrl: string;
+  lastUpdated?: string;
 };

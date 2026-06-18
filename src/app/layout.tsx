@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Footer from "../components/Footer";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -15,7 +16,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" data-scroll-behavior="smooth">
-      <body>
+      <body className="flex min-h-screen flex-col">
         <header className="sticky top-0 z-30 border-b border-rose-100 bg-white/90 backdrop-blur">
           <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
             <div className="flex items-center gap-3 text-slate-950">
@@ -48,16 +49,17 @@ export default function RootLayout({
               <Link href="/opportunities" className="transition hover:text-rose-700">
                 Browse
               </Link>
-              <a
-                href="mailto:hello@example.com?subject=Submit%20an%20Opportunity"
+              <Link
+                href="/for-providers"
                 className="transition hover:text-rose-700"
               >
                 For Providers
-              </a>
+              </Link>
             </div>
           </nav>
         </header>
         {children}
+        <Footer />
       </body>
     </html>
   );

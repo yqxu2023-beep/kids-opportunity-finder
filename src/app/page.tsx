@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ActivityTrustLinks } from "@/components/ActivityTrustLinks";
 import { HomeSearch } from "@/components/HomeSearch";
 import { OpportunityStickerBadge } from "@/components/OpportunityStickerBadge";
 import { InfoIcon } from "@/components/OpportunityUi";
@@ -100,8 +101,7 @@ function getUpcomingActivities() {
 
 function UpcomingCard({ opportunity }: { opportunity: Opportunity }) {
   return (
-    <Link
-      href={`/opportunities/${opportunity.id}`}
+    <article
       className="group flex h-full flex-col justify-between rounded-[1.6rem] border border-transparent bg-white p-5 shadow-[0_18px_42px_rgba(43,70,99,0.12)] transition duration-200 hover:translate-y-1 hover:border-orange-500 hover:shadow-[0_22px_48px_rgba(194,65,12,0.14)] focus:outline-none focus:ring-4 focus:ring-orange-100"
     >
       <div>
@@ -111,7 +111,9 @@ function UpcomingCard({ opportunity }: { opportunity: Opportunity }) {
           </span>
           <OpportunityStickerBadge opportunity={opportunity} />
         </div>
-        <h3 className="mt-4 text-xl font-black leading-snug text-slate-950">{opportunity.title}</h3>
+        <h3 className="mt-4 text-xl font-black leading-snug text-slate-950">
+          <Link href={`/opportunities/${opportunity.id}`} className="hover:text-orange-700">{opportunity.title}</Link>
+        </h3>
         <p className="mt-1 text-sm font-bold text-slate-600">{opportunity.provider}</p>
 
         <dl className="mt-5 grid grid-cols-2 gap-3 text-sm">
@@ -144,12 +146,15 @@ function UpcomingCard({ opportunity }: { opportunity: Opportunity }) {
             </div>
           </div>
         </dl>
+        <div className="mt-5 border-t border-slate-100 pt-4">
+          <ActivityTrustLinks opportunity={opportunity} />
+        </div>
       </div>
 
-      <span className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-rose-50 px-4 text-sm font-black text-orange-700 transition group-hover:bg-orange-600 group-hover:text-white">
+      <Link href={`/opportunities/${opportunity.id}`} className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-rose-50 px-4 text-sm font-black text-orange-700 transition group-hover:bg-orange-600 group-hover:text-white">
         View Details <span className="ml-2" aria-hidden="true">→</span>
-      </span>
-    </Link>
+      </Link>
+    </article>
   );
 }
 
@@ -284,12 +289,13 @@ export default function Home() {
               <Link href="/opportunities" className="hover:text-white">
                 Browse Activities
               </Link>
-              <Link href="/opportunities?free=true" className="hover:text-white">
+              <Link href="/free-activities" className="hover:text-white">
                 Free Activities
               </Link>
-              <Link href="/opportunities?category=Library" className="hover:text-white">
-                Library Programs
-              </Link>
+              <Link href="/summer-camps" className="hover:text-white">Summer Camps</Link>
+              <Link href="/teen-activities" className="hover:text-white">Teen Activities</Link>
+              <Link href="/sports-programs" className="hover:text-white">Sports Programs</Link>
+              <Link href="/after-school-programs" className="hover:text-white">After-School Programs</Link>
             </div>
           </div>
           <div>
@@ -297,12 +303,13 @@ export default function Home() {
               Support
             </h3>
             <div className="mt-4 grid gap-3 text-sm font-bold text-slate-200">
-              <a href="mailto:hello@example.com?subject=Submit%20an%20Opportunity" className="hover:text-white">
+              <Link href="/submit-activity" className="hover:text-white">
                 Submit an Opportunity
-              </a>
-              <a href="mailto:hello@example.com?subject=Kids%20Opportunity%20Finder%20Support" className="hover:text-white">
-                Contact Support
-              </a>
+              </Link>
+              <Link href="/about" className="hover:text-white">About</Link>
+              <Link href="/contact" className="hover:text-white">Contact</Link>
+              <Link href="/disclaimer" className="hover:text-white">Disclaimer</Link>
+              <Link href="/privacy" className="hover:text-white">Privacy</Link>
             </div>
           </div>
         </div>
