@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { CostBadge, InfoIcon } from "@/components/OpportunityUi";
 import { getCategoryIcon, getOpportunityById, opportunities } from "@/lib/opportunities";
 
 type OpportunityDetailPageProps = {
@@ -44,20 +45,12 @@ export default async function OpportunityDetailPage({ params }: OpportunityDetai
         Back to opportunities
       </Link>
 
-      <article className="mt-6 rounded-lg border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-        <div className="flex flex-wrap gap-2">
+      <article className="mt-6 rounded-[1.5rem] border border-orange-100 bg-white p-6 shadow-[0_16px_42px_rgba(194,65,12,0.10)] sm:p-8">
+        <div className="flex items-start justify-between gap-3">
           <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-bold text-sky-800">
             {getCategoryIcon(opportunity.categoryGroup)} {opportunity.category}
           </span>
-          {opportunity.isFree ? (
-            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800">
-              Free
-            </span>
-          ) : (
-            <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-800">
-              Paid
-            </span>
-          )}
+          <CostBadge isFree={opportunity.isFree} />
         </div>
 
         <h1 className="mt-5 text-3xl font-black leading-tight text-slate-950 sm:text-5xl">
@@ -66,26 +59,34 @@ export default async function OpportunityDetailPage({ params }: OpportunityDetai
         <p className="mt-3 text-lg font-semibold text-slate-600">{opportunity.provider}</p>
         <p className="mt-6 text-lg leading-8 text-slate-700">{opportunity.description}</p>
 
-        <dl className="mt-8 grid gap-4 sm:grid-cols-2">
-          <div className="rounded-lg bg-sky-50 p-4">
-            <dt className="text-sm font-black uppercase tracking-wide text-sky-800">Ages</dt>
-            <dd className="mt-1 text-lg font-bold text-slate-950">
-              {opportunity.ageMin}-{opportunity.ageMax}
-            </dd>
+        <dl className="mt-8 grid gap-5 rounded-[1.25rem] border border-sky-100 bg-slate-50 p-5 sm:grid-cols-2">
+          <div className="flex items-center gap-3">
+            <InfoIcon name="age" />
+            <div>
+              <dt className="text-sm font-bold text-slate-500">Ages</dt>
+              <dd className="font-bold text-slate-950">{opportunity.ageMin}-{opportunity.ageMax}</dd>
+            </div>
           </div>
-          <div className="rounded-lg bg-emerald-50 p-4">
-            <dt className="text-sm font-black uppercase tracking-wide text-emerald-800">Cost</dt>
-            <dd className="mt-1 text-lg font-bold text-slate-950">{opportunity.cost}</dd>
+          <div className="flex items-center gap-3">
+            <InfoIcon name="calendar" />
+            <div>
+              <dt className="text-sm font-bold text-slate-500">Start date</dt>
+              <dd className="font-bold text-slate-950">{opportunity.startDate ?? opportunity.schedule}</dd>
+            </div>
           </div>
-          <div className="rounded-lg bg-amber-50 p-4">
-            <dt className="text-sm font-black uppercase tracking-wide text-amber-800">Schedule</dt>
-            <dd className="mt-1 text-lg font-bold text-slate-950">{opportunity.schedule}</dd>
+          <div className="flex items-center gap-3">
+            <InfoIcon name="cost" />
+            <div>
+              <dt className="text-sm font-bold text-slate-500">Cost</dt>
+              <dd className="font-bold text-slate-950">{opportunity.cost}</dd>
+            </div>
           </div>
-          <div className="rounded-lg bg-rose-50 p-4">
-            <dt className="text-sm font-black uppercase tracking-wide text-rose-800">Location</dt>
-            <dd className="mt-1 text-lg font-bold text-slate-950">
-              {opportunity.location}, {opportunity.city}
-            </dd>
+          <div className="flex items-center gap-3">
+            <InfoIcon name="location" />
+            <div>
+              <dt className="text-sm font-bold text-slate-500">Location</dt>
+              <dd className="font-bold text-slate-950">{opportunity.location}, {opportunity.city}</dd>
+            </div>
           </div>
         </dl>
 

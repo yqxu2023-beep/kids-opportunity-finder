@@ -2,7 +2,12 @@
 
 import { useMemo, useState } from "react";
 import { OpportunityCard } from "@/components/OpportunityCard";
-import { getCategoryGroup, opportunities } from "@/lib/opportunities";
+import {
+  getCategoriesByActivityCount,
+  getCategoryGroup,
+  opportunities,
+  sortOpportunitiesByDate,
+} from "@/lib/opportunities";
 
 type OpportunitiesClientProps = {
   initialSearch: string;
@@ -23,10 +28,12 @@ export function OpportunitiesClient({
   const [freeOnly, setFreeOnly] = useState(initialFreeOnly);
 
   const categories = useMemo(() => {
-    return Array.from(new Set(opportunities.map((opportunity) => opportunity.categoryGroup))).sort();
+    return getCategoriesByActivityCount();
   }, []);
 
-  const filteredOpportunities = opportunities.filter((opportunity) => {
+  const sortedOpportunities = useMemo(() => sortOpportunitiesByDate(opportunities), []);
+
+  const filteredOpportunities = sortedOpportunities.filter((opportunity) => {
     const normalizedKeyword = keyword.trim().toLowerCase();
     const searchableText = [
       opportunity.title,

@@ -14,7 +14,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" data-scroll-behavior="smooth">
       <body>
         <header className="sticky top-0 z-30 border-b border-rose-100 bg-white/90 backdrop-blur">
           <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
@@ -40,7 +40,7 @@ export default function RootLayout({
                   />
                 </svg>
               </Link>
-              <Link href="/" className="text-base font-black tracking-tight sm:text-lg">
+              <Link href="/" className="font-display text-base font-black tracking-tight sm:text-lg">
                 Kids Opportunity Finder
               </Link>
             </div>

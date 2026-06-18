@@ -1,6 +1,14 @@
 import Link from "next/link";
 import { HomeSearch } from "@/components/HomeSearch";
-import { getCategoryIcon, opportunities } from "@/lib/opportunities";
+import { OpportunityStickerBadge } from "@/components/OpportunityStickerBadge";
+import { InfoIcon } from "@/components/OpportunityUi";
+import {
+  getCategoryActivityCount,
+  getCategoryIcon,
+  isOpportunityUpcoming,
+  opportunities,
+  sortOpportunitiesByDate,
+} from "@/lib/opportunities";
 import type { Opportunity } from "@/types/opportunity";
 
 const categoryCards = [
@@ -9,7 +17,7 @@ const categoryCards = [
     icon: getCategoryIcon("Sports"),
     description: "Active programs, teams, and beginner-friendly skill sessions.",
     href: "/opportunities?category=Sports",
-    count: countByCategory("Sports"),
+    count: getCategoryActivityCount("Sports"),
     className: "bg-emerald-50 text-emerald-700",
   },
   {
@@ -17,7 +25,7 @@ const categoryCards = [
     icon: getCategoryIcon("Arts"),
     description: "Creative workshops, crafts, storytelling, and music activities.",
     href: "/opportunities?category=Arts",
-    count: countByCategory("Arts"),
+    count: getCategoryActivityCount("Arts"),
     className: "bg-rose-50 text-rose-700",
   },
   {
@@ -25,7 +33,7 @@ const categoryCards = [
     icon: getCategoryIcon("Library"),
     description: "Reading clubs, family programs, and free learning events.",
     href: "/opportunities?category=Library",
-    count: countByCategory("Library"),
+    count: getCategoryActivityCount("Library"),
     className: "bg-amber-50 text-amber-700",
   },
   {
@@ -33,10 +41,10 @@ const categoryCards = [
     icon: getCategoryIcon("Camps"),
     description: "Seasonal camps, weekend programs, and school-break ideas.",
     href: "/opportunities?category=Camps",
-    count: countByCategory("Camps"),
+    count: getCategoryActivityCount("Camps"),
     className: "bg-orange-50 text-orange-700",
   },
-];
+].sort((first, second) => second.count - first.count || first.title.localeCompare(second.title));
 
 const comingSoon = [
   {
@@ -60,10 +68,6 @@ const comingSoon = [
     accent: "bg-rose-400",
   },
 ];
-
-function countByCategory(category: string) {
-  return opportunities.filter((opportunity) => opportunity.categoryGroup === category).length;
-}
 
 function parseLocalDate(value: string | undefined) {
   if (!value) {
@@ -89,16 +93,8 @@ function formatDate(value: string | undefined) {
 }
 
 function getUpcomingActivities() {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  return opportunities
-    .map((opportunity) => ({
-      opportunity,
-      startDate: parseLocalDate(opportunity.startDate),
-    }))
-    .filter(({ startDate }) => startDate !== null && startDate >= today)
-    .sort((first, second) => first.startDate!.getTime() - second.startDate!.getTime())
+  return sortOpportunitiesByDate(opportunities)
+    .filter((opportunity) => isOpportunityUpcoming(opportunity))
     .slice(0, 6);
 }
 
@@ -109,35 +105,43 @@ function UpcomingCard({ opportunity }: { opportunity: Opportunity }) {
       className="group flex h-full flex-col justify-between rounded-[1.6rem] border border-transparent bg-white p-5 shadow-[0_18px_42px_rgba(43,70,99,0.12)] transition duration-200 hover:translate-y-1 hover:border-orange-500 hover:shadow-[0_22px_48px_rgba(194,65,12,0.14)] focus:outline-none focus:ring-4 focus:ring-orange-100"
     >
       <div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-start justify-between gap-3">
           <span className="rounded-full bg-orange-50 px-3 py-1 text-xs font-black text-orange-700">
             {getCategoryIcon(opportunity.categoryGroup)} {opportunity.category}
           </span>
-          <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700">
-            {opportunity.isFree ? "Free" : opportunity.cost}
-          </span>
+          <OpportunityStickerBadge opportunity={opportunity} />
         </div>
         <h3 className="mt-4 text-xl font-black leading-snug text-slate-950">{opportunity.title}</h3>
         <p className="mt-1 text-sm font-bold text-slate-600">{opportunity.provider}</p>
 
         <dl className="mt-5 grid grid-cols-2 gap-3 text-sm">
-          <div>
-            <dt className="font-black text-slate-500">Ages</dt>
-            <dd className="mt-1 text-slate-950">
-              {opportunity.ageMin}-{opportunity.ageMax}
-            </dd>
+          <div className="flex items-center gap-2">
+            <InfoIcon name="age" />
+            <div>
+              <dt className="font-black text-slate-500">Ages</dt>
+              <dd className="mt-1 text-slate-950">{opportunity.ageMin}-{opportunity.ageMax}</dd>
+            </div>
           </div>
-          <div>
-            <dt className="font-black text-slate-500">Starts</dt>
-            <dd className="mt-1 text-slate-950">{formatDate(opportunity.startDate)}</dd>
+          <div className="flex items-center gap-2">
+            <InfoIcon name="calendar" />
+            <div>
+              <dt className="font-black text-slate-500">Starts</dt>
+              <dd className="mt-1 text-slate-950">{formatDate(opportunity.startDate)}</dd>
+            </div>
           </div>
-          <div>
-            <dt className="font-black text-slate-500">City</dt>
-            <dd className="mt-1 text-slate-950">{opportunity.city}</dd>
+          <div className="flex items-center gap-2">
+            <InfoIcon name="location" />
+            <div>
+              <dt className="font-black text-slate-500">City</dt>
+              <dd className="mt-1 text-slate-950">{opportunity.city}</dd>
+            </div>
           </div>
-          <div>
-            <dt className="font-black text-slate-500">Cost</dt>
-            <dd className="mt-1 text-slate-950">{opportunity.cost}</dd>
+          <div className="flex items-center gap-2">
+            <InfoIcon name="cost" />
+            <div>
+              <dt className="font-black text-slate-500">Cost</dt>
+              <dd className="mt-1 text-slate-950">{opportunity.cost}</dd>
+            </div>
           </div>
         </dl>
       </div>
@@ -156,9 +160,13 @@ export default function Home() {
     <main>
       <section className="relative bg-[linear-gradient(135deg,#fff7ed_0%,#ffe4e6_48%,#fff1f2_100%)]">
         <div className="mx-auto max-w-6xl px-4 pb-28 pt-14 text-center sm:px-6 sm:pb-32 sm:pt-20">
-          <p className="mx-auto inline-flex rounded-full bg-white/80 px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-orange-700 shadow-sm">
-            Family-friendly opportunities
-          </p>
+          <Link
+            href="/opportunities"
+            className="hero-count-badge mx-auto inline-flex max-w-full cursor-pointer items-center gap-2 rounded-full px-4 py-2 text-xs font-black focus:outline-none"
+          >
+            <span aria-hidden="true">🔎</span>
+            <span>{opportunities.length} total opportunities waiting to be explored</span>
+          </Link>
           <h1 className="mx-auto mt-6 max-w-4xl text-4xl font-black leading-[1.05] tracking-tight text-slate-950 sm:text-6xl">
             Find Kids Activities in <span className="text-orange-600">Yellowknife</span>
           </h1>
@@ -227,7 +235,7 @@ export default function Home() {
           </div>
 
           <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-            {upcomingActivities.map(({ opportunity }) => (
+            {upcomingActivities.map((opportunity) => (
               <UpcomingCard key={opportunity.id} opportunity={opportunity} />
             ))}
           </div>

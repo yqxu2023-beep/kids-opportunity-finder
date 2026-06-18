@@ -1,51 +1,51 @@
 import Link from "next/link";
+import { InfoIcon } from "@/components/OpportunityUi";
+import { OpportunityStickerBadge } from "@/components/OpportunityStickerBadge";
 import { getCategoryIcon } from "@/lib/opportunities";
 import type { Opportunity } from "@/types/opportunity";
 
-type OpportunityCardProps = {
-  opportunity: Opportunity;
-};
+type OpportunityCardProps = { opportunity: Opportunity };
 
 export function OpportunityCard({ opportunity }: OpportunityCardProps) {
   return (
     <Link
       href={`/opportunities/${opportunity.id}`}
-      className="group flex h-full flex-col justify-between rounded-[1.35rem] border border-orange-100 bg-white p-5 shadow-[0_14px_34px_rgba(194,65,12,0.10)] transition duration-200 hover:translate-y-1 hover:border-orange-500 hover:shadow-[0_18px_42px_rgba(194,65,12,0.14)] focus:outline-none focus:ring-4 focus:ring-orange-100"
+      className="group flex h-full flex-col overflow-hidden rounded-[1.35rem] border border-orange-100 bg-white shadow-[0_14px_34px_rgba(194,65,12,0.10)] transition duration-200 hover:translate-y-1 hover:border-orange-500 hover:shadow-[0_18px_42px_rgba(194,65,12,0.14)] focus:outline-none focus:ring-4 focus:ring-orange-100"
     >
-      <div>
-        <div className="mb-3 flex flex-wrap gap-2">
+      <div className="flex flex-1 flex-col p-5">
+        <div className="mb-4 flex items-start justify-between gap-3">
           <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-bold text-orange-800">
             {getCategoryIcon(opportunity.categoryGroup)} {opportunity.category}
           </span>
-          {opportunity.isFree ? (
-            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800">
-              Free
-            </span>
-          ) : null}
+          <OpportunityStickerBadge opportunity={opportunity} />
         </div>
+
         <h2 className="text-xl font-black text-slate-950">{opportunity.title}</h2>
-        <p className="mt-1 text-sm font-semibold text-slate-600">{opportunity.provider}</p>
-        <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-700">
-          {opportunity.description}
+        <p className="mt-2 text-sm font-semibold text-slate-600">
+          {opportunity.provider} <span className="text-slate-300">|</span> {opportunity.city}
         </p>
-      </div>
-      <div className="mt-5 border-t border-slate-100 pt-4">
-        <dl className="grid grid-cols-2 gap-3 text-sm">
-          <div>
-            <dt className="font-bold text-slate-500">Ages</dt>
-            <dd className="text-slate-900">
-              {opportunity.ageMin}-{opportunity.ageMax}
-            </dd>
-          </div>
-          <div>
-            <dt className="font-bold text-slate-500">City</dt>
-            <dd className="text-slate-900">{opportunity.city}</dd>
-          </div>
+        <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-700">{opportunity.description}</p>
+
+        <dl className="mt-5 grid gap-3 rounded-2xl border border-sky-100 bg-slate-50 p-4 text-sm">
+          <InfoRow icon="age" label="Ages" value={`Ages ${opportunity.ageMin}-${opportunity.ageMax}`} />
+          <InfoRow icon="calendar" label="Start date" value={opportunity.startDate ?? opportunity.schedule} />
+          <InfoRow icon="cost" label="Cost" value={opportunity.cost} />
+          <InfoRow icon="location" label="City" value={opportunity.city} />
         </dl>
-        <span className="mt-4 inline-flex w-full items-center justify-center rounded-full bg-rose-50 px-4 py-3 text-sm font-bold text-orange-700 transition group-hover:bg-orange-600 group-hover:text-white">
-          View Details <span className="ml-2" aria-hidden="true">→</span>
-        </span>
       </div>
+
+      <span className="inline-flex w-full items-center justify-center bg-rose-50 px-4 py-3 text-sm font-bold text-orange-700 transition group-hover:bg-orange-600 group-hover:text-white">
+        View Details <span className="ml-2" aria-hidden="true">&rarr;</span>
+      </span>
     </Link>
+  );
+}
+
+function InfoRow({ icon, label, value }: { icon: "age" | "calendar" | "cost" | "location"; label: string; value: string }) {
+  return (
+    <div className="flex items-center gap-3">
+      <InfoIcon name={icon} />
+      <div><dt className="sr-only">{label}</dt><dd className="font-semibold text-slate-800">{value}</dd></div>
+    </div>
   );
 }
