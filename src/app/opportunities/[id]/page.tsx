@@ -6,9 +6,14 @@ import { ReportIssueLink } from "@/components/ReportIssueLink";
 import { contactEmail } from "@/lib/email";
 import { getSiteUrl, siteConfig } from "@/lib/site";
 import {
+  formatOpportunityDate,
   getCategoryIcon,
-  getOpportunityById,
-  opportunities,
+  getOfficialUrl,
+  getOpportunityBySlug,
+  getOpportunityCost,
+  getOpportunityLocation,
+  getProviderName,
+  isOpportunityFree,
 } from "@/lib/opportunities";
 
 type OpportunityDetailPageProps = {
@@ -17,15 +22,9 @@ type OpportunityDetailPageProps = {
   }>;
 };
 
-export function generateStaticParams() {
-  return opportunities.map((opportunity) => ({
-    id: opportunity.id,
-  }));
-}
-
 export async function generateMetadata({ params }: OpportunityDetailPageProps) {
   const { id } = await params;
-  const opportunity = getOpportunityById(id);
+  const opportunity = await getOpportunityBySlug(id);
 
   if (!opportunity) {
     return {
@@ -35,30 +34,30 @@ export async function generateMetadata({ params }: OpportunityDetailPageProps) {
 
   return {
     title: `${opportunity.title} | ${siteConfig.siteName}`,
-    description: opportunity.description,
-    alternates: { canonical: `/opportunities/${opportunity.id}` },
+    description: opportunity.description ?? undefined,
+    alternates: { canonical: `/opportunities/${opportunity.slug}` },
     openGraph: {
       title: opportunity.title,
-      description: opportunity.description,
-      url: getSiteUrl(`/opportunities/${opportunity.id}`),
+      description: opportunity.description ?? undefined,
+      url: getSiteUrl(`/opportunities/${opportunity.slug}`),
     },
   };
 }
 
 export default async function OpportunityDetailPage({ params }: OpportunityDetailPageProps) {
   const { id } = await params;
-  const opportunity = getOpportunityById(id);
+  const opportunity = await getOpportunityBySlug(id);
 
   if (!opportunity) {
     notFound();
   }
 
-  const locationLines = opportunity.location
+  const locationLines = getOpportunityLocation(opportunity)
     .split(",")
     .map((part) => part.trim())
     .filter(Boolean);
 
-  if (locationLines.at(-1)?.toLocaleLowerCase() !== opportunity.city.toLocaleLowerCase()) {
+  if (opportunity.city && locationLines.at(-1)?.toLocaleLowerCase() !== opportunity.city.toLocaleLowerCase()) {
     locationLines.push(opportunity.city);
   }
 
@@ -74,15 +73,15 @@ export default async function OpportunityDetailPage({ params }: OpportunityDetai
 
         <div className="mt-4 flex items-start justify-between gap-3">
           <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-bold text-sky-800">
-            {getCategoryIcon(opportunity.categoryGroup)} {opportunity.category}
+            {getCategoryIcon(opportunity.category)} {opportunity.category ?? "Other"}
           </span>
-          {opportunity.isFree && <CostBadge isFree label="FREE" />}
+          {isOpportunityFree(opportunity) && <CostBadge isFree label="FREE" />}
         </div>
 
         <h1 className="mt-3 text-[clamp(2rem,4vw,3rem)] font-black leading-[1.1] text-slate-950">
           {opportunity.title}
         </h1>
-        <p className="mt-2 text-base font-semibold text-slate-600 sm:text-lg">{opportunity.provider}</p>
+        <p className="mt-2 text-base font-semibold text-slate-600 sm:text-lg">{getProviderName(opportunity)}</p>
         <p className="mt-4 text-base leading-7 text-slate-700 sm:text-lg sm:leading-8">{opportunity.description}</p>
 
         <dl className="mt-5 grid gap-4 rounded-[1.25rem] border border-sky-100 bg-slate-50 p-4 sm:grid-cols-2 sm:p-5">
@@ -90,21 +89,21 @@ export default async function OpportunityDetailPage({ params }: OpportunityDetai
             <InfoIcon name="age" />
             <div>
               <dt className="text-sm font-bold text-slate-500">Ages</dt>
-              <dd className="font-bold text-slate-950">{opportunity.ageMin}-{opportunity.ageMax}</dd>
+              <dd className="font-bold text-slate-950">{opportunity.age_min ?? 0}-{opportunity.age_max ?? 18}</dd>
             </div>
           </div>
           <div className="flex items-start gap-3">
             <InfoIcon name="calendar" />
             <div>
               <dt className="text-sm font-bold text-slate-500">Start date</dt>
-              <dd className="font-bold text-slate-950">{opportunity.startDate ?? opportunity.schedule}</dd>
+              <dd className="font-bold text-slate-950">{formatOpportunityDate(opportunity.start_date)}</dd>
             </div>
           </div>
           <div className="flex items-start gap-3">
             <InfoIcon name="cost" />
             <div>
               <dt className="text-sm font-bold text-slate-500">Cost</dt>
-              <dd className="font-bold text-slate-950">{opportunity.cost}</dd>
+              <dd className="font-bold text-slate-950">{getOpportunityCost(opportunity)}</dd>
             </div>
           </div>
           <div className="flex min-w-0 items-start gap-3">
@@ -123,7 +122,7 @@ export default async function OpportunityDetailPage({ params }: OpportunityDetai
         </div>
 
         <a
-          href={opportunity.registrationUrl}
+          href={opportunity.registration_url || getOfficialUrl(opportunity)}
           target="_blank"
           rel="noreferrer"
           className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-orange-600 px-7 py-3 text-base font-black text-white shadow-[0_8px_20px_rgba(234,88,12,0.28)] transition hover:bg-orange-700 hover:shadow-[0_10px_24px_rgba(194,65,12,0.34)] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-orange-600 sm:w-auto"

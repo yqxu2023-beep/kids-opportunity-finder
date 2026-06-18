@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { opportunities } from "@/lib/opportunities";
+import { getActiveOpportunities } from "@/lib/opportunities";
 import { getSiteUrl } from "@/lib/site";
 
 const staticRoutes = [
@@ -17,14 +17,15 @@ const staticRoutes = [
   "/after-school-programs",
 ];
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const opportunities = await getActiveOpportunities();
   const staticPages = staticRoutes.map((route) => ({
     url: getSiteUrl(route),
   }));
   const opportunityPages = opportunities.map((opportunity) => ({
-    url: getSiteUrl(`/opportunities/${opportunity.id}`),
-    ...(opportunity.lastUpdated
-      ? { lastModified: new Date(`${opportunity.lastUpdated}T00:00:00`) }
+    url: getSiteUrl(`/opportunities/${opportunity.slug}`),
+    ...(opportunity.updated_at
+      ? { lastModified: new Date(opportunity.updated_at) }
       : {}),
   }));
 

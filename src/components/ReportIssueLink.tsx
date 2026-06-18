@@ -14,7 +14,7 @@ export function ReportIssueLink({
   className: string;
 }) {
   function includeCurrentListingUrl(event: MouseEvent<HTMLAnchorElement>) {
-    const listingUrl = `${window.location.origin}/opportunities/${opportunity.id}`;
+    const listingUrl = `${window.location.origin}/opportunities/${opportunity.slug}`;
     event.currentTarget.href = getOutdatedReportUrl(opportunity, listingUrl);
   }
 

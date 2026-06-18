@@ -3,7 +3,7 @@ import { getOpportunityCostBadgeLabel } from "@/lib/opportunities";
 import type { Opportunity } from "@/types/opportunity";
 
 type OpportunityStickerBadgeProps = {
-  opportunity: Pick<Opportunity, "cost" | "isFree">;
+  opportunity: Pick<Opportunity, "cost_type" | "cost_amount">;
 };
 
 const badgeColors: Record<"free" | "price" | "contact", CSSProperties> = {
@@ -29,7 +29,7 @@ const badgeColors: Record<"free" | "price" | "contact", CSSProperties> = {
 
 export function OpportunityStickerBadge({ opportunity }: OpportunityStickerBadgeProps) {
   const label = getOpportunityCostBadgeLabel(opportunity);
-  const badgeType = opportunity.isFree ? "free" : label.startsWith("$") ? "price" : "contact";
+  const badgeType = label === "Free!" ? "free" : label.startsWith("$") ? "price" : "contact";
 
   return (
     <span

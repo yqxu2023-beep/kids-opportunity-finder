@@ -1,306 +1,248 @@
-import opportunitiesData from "@/data/opportunities.json";
 import { buildGmailComposeUrl } from "@/lib/email";
+import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 import type { Opportunity } from "@/types/opportunity";
 
-type RawOpportunity = {
-  id?: unknown;
-  title?: unknown;
-  provider?: unknown;
-  category?: unknown;
-  description?: unknown;
-  city?: unknown;
-  age_min?: unknown;
-  age_max?: unknown;
-  is_free?: unknown;
-  cost?: unknown;
-  schedule?: unknown;
-  start_date?: unknown;
-  end_date?: unknown;
-  location?: unknown;
-  registration_url?: unknown;
-  website?: unknown;
-  source?: unknown;
-  last_verified?: unknown;
-};
+export const opportunityDataUnavailableMessage =
+  "Opportunities are temporarily unavailable. Please check back soon.";
 
-function normalizeString(value: unknown, fallback = "") {
-  return typeof value === "string" && value.trim() ? value.trim() : fallback;
+const opportunityColumns = [
+  "id", "slug", "title", "description", "provider_id", "provider_name", "category",
+  "age_min", "age_max", "city", "location_name", "address", "start_date", "end_date",
+  "registration_deadline", "cost_type", "cost_amount", "registration_url", "contact_email",
+  "contact_phone", "source_url", "image_url", "status", "featured", "created_at", "updated_at",
+].join(",");
+
+function todayAsDateString() {
+  const now = new Date();
+  const offset = now.getTimezoneOffset() * 60_000;
+  return new Date(now.getTime() - offset).toISOString().slice(0, 10);
 }
 
-function normalizeDate(value: unknown) {
-  return normalizeString(value) || undefined;
+function reportError(context: string, error: unknown) {
+  console.error(`[Supabase] ${context}`, error);
 }
 
-function normalizeNumber(value: unknown, fallback: number) {
-  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+export async function getActiveOpportunities(
+  { includeExpired = false }: { includeExpired?: boolean } = {}
+): Promise<Opportunity[]> {
+  if (!supabase) return [];
+
+  let query = supabase
+    .from("opportunities")
+    .select(opportunityColumns)
+    .eq("status", "active");
+
+  if (!includeExpired) {
+    query = query.or(`end_date.is.null,end_date.gte.${todayAsDateString()}`);
+  }
+
+  const { data, error } = await query.order("start_date", {
+    ascending: true,
+    nullsFirst: false,
+  });
+
+  if (error) {
+    reportError("Could not load active opportunities", error);
+    return [];
+  }
+
+  return (data ?? []) as unknown as Opportunity[];
 }
 
-function normalizeBoolean(value: unknown, fallback = false) {
-  return typeof value === "boolean" ? value : fallback;
+export async function getFeaturedOpportunities(): Promise<Opportunity[]> {
+  const opportunities = await getActiveOpportunities();
+  return opportunities.filter((opportunity) => opportunity.featured);
 }
 
-const exactCategoryGroups: Record<string, string> = {
-  Sports: "Sports",
-  Camps: "Camps",
-  "Library Programs": "Library",
-  "Arts & Culture": "Arts",
-  "Community & Family": "Community",
-  "Local Activities": "Local",
-};
+export async function getOpportunityBySlug(slug: string): Promise<Opportunity | null> {
+  if (!supabase) return null;
 
-const categoryIcons: Record<string, string> = {
-  Sports: "⚽",
-  Arts: "🎨",
-  Library: "📚",
-  Camps: "🏕️",
-  Community: "👨‍👩‍👧",
-  Local: "📍",
-  Other: "⭐",
-};
+  const { data, error } = await supabase
+    .from("opportunities")
+    .select(opportunityColumns)
+    .eq("slug", slug)
+    .eq("status", "active")
+    .maybeSingle();
 
-export function getCategoryGroup(category: string) {
-  const trimmedCategory = category.trim();
-
-  if (!trimmedCategory) {
-    return "Other";
-  }
-
-  const exactMatch = exactCategoryGroups[trimmedCategory];
-
-  if (exactMatch) {
-    return exactMatch;
-  }
-
-  const normalizedCategory = trimmedCategory.toLowerCase();
-
-  if (normalizedCategory.includes("library")) {
-    return "Library";
-  }
-
-  if (normalizedCategory.includes("art") || normalizedCategory.includes("culture")) {
-    return "Arts";
-  }
-
-  if (normalizedCategory.includes("camp")) {
-    return "Camps";
-  }
-
-  if (
-    [
-      "sport",
-      "soccer",
-      "tennis",
-      "golf",
-      "judo",
-      "gymnastics",
-      "skating",
-      "basketball",
-    ].some((sportKeyword) => normalizedCategory.includes(sportKeyword))
-  ) {
-    return "Sports";
-  }
-
-  return trimmedCategory;
-}
-
-export function getCategoryIcon(category: string) {
-  return categoryIcons[getCategoryGroup(category)] ?? categoryIcons.Other;
-}
-
-function normalizeCost(value: unknown, isFree: boolean) {
-  if (isFree) {
-    return "Free";
-  }
-
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return value === 0 ? "Free" : `$${value.toFixed(value % 1 === 0 ? 0 : 2)}`;
-  }
-
-  return normalizeString(value, "Contact provider");
-}
-
-function buildSchedule(startDate?: string, endDate?: string, explicitSchedule?: unknown) {
-  const schedule = normalizeString(explicitSchedule);
-
-  if (schedule) {
-    return schedule;
-  }
-
-  if (startDate && endDate && startDate !== endDate) {
-    return `${startDate} to ${endDate}`;
-  }
-
-  return startDate ?? "Contact provider";
-}
-
-function normalizeOpportunity(raw: RawOpportunity): Opportunity {
-  const isFree = normalizeBoolean(raw.is_free, raw.cost === 0);
-  const startDate = normalizeDate(raw.start_date);
-  const endDate = normalizeDate(raw.end_date);
-  const category = normalizeString(raw.category, "Other");
-  const registrationUrl =
-    normalizeString(raw.registration_url) ||
-    normalizeString(raw.website) ||
-    normalizeString(raw.source, "#");
-  const officialUrl =
-    normalizeString(raw.website) ||
-    normalizeString(raw.source) ||
-    registrationUrl;
-
-  return {
-    id: normalizeString(raw.id),
-    title: normalizeString(raw.title, "Untitled opportunity"),
-    provider: normalizeString(raw.provider, "Unknown provider"),
-    category,
-    categoryGroup: getCategoryGroup(category),
-    description: normalizeString(raw.description, "No description available."),
-    city: normalizeString(raw.city, "Unknown"),
-    ageMin: normalizeNumber(raw.age_min, 0),
-    ageMax: normalizeNumber(raw.age_max, 18),
-    isFree,
-    cost: normalizeCost(raw.cost, isFree),
-    schedule: buildSchedule(startDate, endDate, raw.schedule),
-    startDate,
-    endDate,
-    location: normalizeString(raw.location, "Contact provider"),
-    registrationUrl,
-    officialUrl,
-    lastUpdated: normalizeDate(raw.last_verified),
-  };
-}
-
-export function formatOpportunityDate(value: string | undefined) {
-  const date = parseLocalDate(value);
-
-  if (!date) {
-    return "Date unavailable";
-  }
-
-  return new Intl.DateTimeFormat("en-CA", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(date);
-}
-
-export function getOutdatedReportUrl(
-  opportunity: Pick<Opportunity, "id" | "title" | "provider" | "city">,
-  listingUrl = `/opportunities/${opportunity.id}`
-) {
-  const subject = `Report an Issue - ${opportunity.title}`;
-  const bodyLines = [
-    `Program name: ${opportunity.title}`,
-    `Provider: ${opportunity.provider === "Unknown provider" ? "" : opportunity.provider}`,
-    `City: ${opportunity.city === "Unknown" ? "" : opportunity.city}`,
-    `Listing URL: ${listingUrl}`,
-    "",
-    "Issue:",
-    "Correct information:",
-    "Your name:",
-    "Your contact email:",
-  ];
-
-  return buildGmailComposeUrl(subject, bodyLines.join("\n"));
-}
-
-export const opportunities = (opportunitiesData as RawOpportunity[]).map(normalizeOpportunity);
-
-export function getOpportunityCostBadgeLabel(
-  opportunity: Pick<Opportunity, "cost" | "isFree">
-) {
-  if (opportunity.isFree) {
-    return "Free!";
-  }
-
-  const numericCost = opportunity.cost.trim().replace(/^\$/, "");
-
-  if (!/^\d+(?:\.\d+)?$/.test(numericCost)) {
-    return "Contact Provider";
-  }
-
-  const cost = Number(numericCost);
-
-  if (!Number.isFinite(cost) || cost <= 0) {
-    return "Contact Provider";
-  }
-
-  return `$${cost.toFixed(Number.isInteger(cost) ? 0 : 2)}`;
-}
-
-function parseLocalDate(value: string | undefined) {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value ?? "");
-
-  if (!match) {
+  if (error) {
+    reportError(`Could not load opportunity ${slug}`, error);
     return null;
   }
 
+  return data as unknown as Opportunity | null;
+}
+
+export async function getCategories(): Promise<string[]> {
+  if (!supabase) return [];
+
+  const { data, error } = await supabase.from("categories").select("name").order("name");
+  if (error) {
+    reportError("Could not load categories", error);
+    return [];
+  }
+
+  return (data ?? [])
+    .map((category) => category.name)
+    .filter((name): name is string => typeof name === "string" && name.length > 0);
+}
+
+export function hasOpportunityDataConfiguration() {
+  return isSupabaseConfigured;
+}
+
+const exactCategoryGroups: Record<string, string> = {
+  Sports: "Sports", Camps: "Camps", "Library Programs": "Library",
+  "Arts & Culture": "Arts", "Community & Family": "Community", "Local Activities": "Local",
+};
+
+const categoryIcons: Record<string, string> = {
+  Sports: "⚽", Arts: "🎨", Library: "📚", Camps: "🏕️",
+  Community: "👨‍👩‍👧", Local: "📍", Other: "⭐",
+};
+
+export function getCategoryGroup(category: string | null) {
+  const trimmed = category?.trim() ?? "";
+  if (!trimmed) return "Other";
+  if (exactCategoryGroups[trimmed]) return exactCategoryGroups[trimmed];
+  const normalized = trimmed.toLowerCase();
+  if (normalized.includes("library")) return "Library";
+  if (normalized.includes("art") || normalized.includes("culture")) return "Arts";
+  if (normalized.includes("camp")) return "Camps";
+  if (["sport", "soccer", "tennis", "golf", "judo", "gymnastics", "skating", "basketball"]
+    .some((keyword) => normalized.includes(keyword))) return "Sports";
+  return trimmed;
+}
+
+export function getCategoryIcon(category: string | null) {
+  return categoryIcons[getCategoryGroup(category)] ?? categoryIcons.Other;
+}
+
+export function getProviderName(opportunity: Opportunity) {
+  return opportunity.provider_name?.trim() || "Unknown provider";
+}
+
+export function getOpportunityCost(opportunity: Opportunity) {
+  if (isOpportunityFree(opportunity)) return "Free";
+  if (typeof opportunity.cost_amount === "number") {
+    return `$${opportunity.cost_amount.toFixed(Number.isInteger(opportunity.cost_amount) ? 0 : 2)}`;
+  }
+  return "Contact provider";
+}
+
+export function isOpportunityFree(opportunity: Pick<Opportunity, "cost_type" | "cost_amount">) {
+  return opportunity.cost_type?.toLowerCase() === "free" || opportunity.cost_amount === 0;
+}
+
+export function getOpportunityLocation(opportunity: Opportunity) {
+  return opportunity.location_name || opportunity.address || "Contact provider";
+}
+
+export function getOfficialUrl(opportunity: Opportunity) {
+  return opportunity.source_url || opportunity.registration_url || "#";
+}
+
+export function formatOpportunityDate(value: string | null | undefined) {
+  const date = parseLocalDate(value);
+  return date
+    ? new Intl.DateTimeFormat("en-CA", { month: "short", day: "numeric", year: "numeric" }).format(date)
+    : "Date unavailable";
+}
+
+export function getOutdatedReportUrl(
+  opportunity: Pick<Opportunity, "slug" | "title" | "provider_name" | "city">,
+  listingUrl = `/opportunities/${opportunity.slug}`
+) {
+  const body = [
+    `Program name: ${opportunity.title}`,
+    `Provider: ${opportunity.provider_name ?? ""}`,
+    `City: ${opportunity.city ?? ""}`,
+    `Listing URL: ${listingUrl}`,
+    "", "Issue:", "Correct information:", "Your name:", "Your contact email:",
+  ].join("\n");
+  return buildGmailComposeUrl(`Report an Issue - ${opportunity.title}`, body);
+}
+
+export function getOpportunityCostBadgeLabel(opportunity: Pick<Opportunity, "cost_type" | "cost_amount">) {
+  if (isOpportunityFree(opportunity)) return "Free!";
+  if (typeof opportunity.cost_amount !== "number" || opportunity.cost_amount <= 0) return "Contact Provider";
+  return `$${opportunity.cost_amount.toFixed(Number.isInteger(opportunity.cost_amount) ? 0 : 2)}`;
+}
+
+function parseLocalDate(value: string | null | undefined) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value ?? "");
+  if (!match) return null;
   const year = Number(match[1]);
   const month = Number(match[2]) - 1;
   const day = Number(match[3]);
   const date = new Date(year, month, day);
-
-  if (date.getFullYear() !== year || date.getMonth() !== month || date.getDate() !== day) {
-    return null;
-  }
-
-  return date;
-}
-
-function getLocalStartOfDay(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+  return date.getFullYear() === year && date.getMonth() === month && date.getDate() === day
+    ? date
+    : null;
 }
 
 export function isOpportunityUpcoming(opportunity: Opportunity, today = new Date()) {
-  const startDate = parseLocalDate(opportunity.startDate);
-  return startDate !== null && startDate.getTime() >= getLocalStartOfDay(today);
+  const start = parseLocalDate(opportunity.start_date);
+  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+  return start !== null && start.getTime() >= todayStart;
 }
 
-export function sortOpportunitiesByDate(
-  items: readonly Opportunity[],
-  today = new Date()
+export function isOpportunityOngoing(
+  opportunity: Pick<Opportunity, "title" | "description">
 ) {
-  const todayTime = getLocalStartOfDay(today);
+  return /\b(?:ongoing|year[- ]round)\b/i.test(
+    `${opportunity.title} ${opportunity.description ?? ""}`
+  );
+}
 
-  return [...items].sort((first, second) => {
-    const firstDate = parseLocalDate(first.startDate);
-    const secondDate = parseLocalDate(second.startDate);
-    const firstGroup = firstDate === null ? 1 : firstDate.getTime() >= todayTime ? 0 : 2;
-    const secondGroup = secondDate === null ? 1 : secondDate.getTime() >= todayTime ? 0 : 2;
+export function sortOpportunitiesByDate(items: readonly Opportunity[], today = new Date()) {
+  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
 
-    if (firstGroup !== secondGroup) {
-      return firstGroup - secondGroup;
+  return [...items].sort((a, b) => {
+    const aStart = parseLocalDate(a.start_date);
+    const bStart = parseLocalDate(b.start_date);
+    const aEnd = parseLocalDate(a.end_date);
+    const bEnd = parseLocalDate(b.end_date);
+    const aExpired = aEnd !== null
+      ? aEnd.getTime() < todayStart
+      : aStart !== null && aStart.getTime() < todayStart && !isOpportunityOngoing(a);
+    const bExpired = bEnd !== null
+      ? bEnd.getTime() < todayStart
+      : bStart !== null && bStart.getTime() < todayStart && !isOpportunityOngoing(b);
+    const aGroup = aExpired
+      ? 2
+      : isOpportunityOngoing(a) || aStart === null || aStart.getTime() < todayStart
+        ? 1
+        : 0;
+    const bGroup = bExpired
+      ? 2
+      : isOpportunityOngoing(b) || bStart === null || bStart.getTime() < todayStart
+        ? 1
+        : 0;
+
+    if (aGroup !== bGroup) return aGroup - bGroup;
+
+    if (aGroup !== 1) {
+      const aSortTime = aStart?.getTime();
+      const bSortTime = bStart?.getTime();
+
+      if (aSortTime !== undefined && bSortTime !== undefined && aSortTime !== bSortTime) {
+        return aGroup === 2 ? bSortTime - aSortTime : aSortTime - bSortTime;
+      }
     }
 
-    if (firstDate === null || secondDate === null) {
-      return 0;
-    }
-
-    return firstGroup === 2
-      ? secondDate.getTime() - firstDate.getTime()
-      : firstDate.getTime() - secondDate.getTime();
+    return a.title.localeCompare(b.title, "en", { sensitivity: "base" });
   });
 }
 
-export function getCategoryActivityCount(category: string) {
-  const categoryGroup = getCategoryGroup(category);
+export function getCategoriesByActivityCount(items: readonly Opportunity[]) {
+  const counts = new Map<string, number>();
+  items.forEach((item) => {
+    const category = item.category?.trim();
+    if (!category || category.toLowerCase() === "free") return;
 
-  return opportunities.filter((opportunity) => opportunity.categoryGroup === categoryGroup).length;
-}
-
-export function getCategoriesByActivityCount() {
-  const categoryCounts = opportunities.reduce((counts, opportunity) => {
-    counts.set(opportunity.categoryGroup, (counts.get(opportunity.categoryGroup) ?? 0) + 1);
-    return counts;
-  }, new Map<string, number>());
-
-  return Array.from(categoryCounts.entries())
-    .sort(
-      ([firstCategory, firstCount], [secondCategory, secondCount]) =>
-        secondCount - firstCount || firstCategory.localeCompare(secondCategory)
-    )
-    .map(([category]) => category);
-}
-
-export function getOpportunityById(id: string) {
-  return opportunities.find((opportunity) => opportunity.id === id);
+    const group = getCategoryGroup(category);
+    if (group.toLowerCase() === "free") return;
+    counts.set(group, (counts.get(group) ?? 0) + 1);
+  });
+  return [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([name]) => name);
 }

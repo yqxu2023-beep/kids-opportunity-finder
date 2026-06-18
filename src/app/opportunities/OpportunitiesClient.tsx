@@ -5,15 +5,19 @@ import { OpportunityCard } from "@/components/OpportunityCard";
 import {
   getCategoriesByActivityCount,
   getCategoryGroup,
-  opportunities,
+  isOpportunityFree,
+  opportunityDataUnavailableMessage,
   sortOpportunitiesByDate,
 } from "@/lib/opportunities";
+import type { Opportunity } from "@/types/opportunity";
 
 type OpportunitiesClientProps = {
   initialSearch: string;
   initialAge: string;
   initialCategory: string;
   initialFreeOnly: boolean;
+  opportunities: Opportunity[];
+  dataUnavailable: boolean;
 };
 
 export function OpportunitiesClient({
@@ -21,25 +25,28 @@ export function OpportunitiesClient({
   initialAge,
   initialCategory,
   initialFreeOnly,
+  opportunities,
+  dataUnavailable,
 }: OpportunitiesClientProps) {
   const [keyword, setKeyword] = useState(initialSearch);
   const [age, setAge] = useState(initialAge);
   const [category, setCategory] = useState(initialCategory ? getCategoryGroup(initialCategory) : "");
   const [freeOnly, setFreeOnly] = useState(initialFreeOnly);
 
-  const categories = useMemo(() => {
-    return getCategoriesByActivityCount();
-  }, []);
+  const categories = useMemo(
+    () => getCategoriesByActivityCount(opportunities),
+    [opportunities]
+  );
 
-  const sortedOpportunities = useMemo(() => sortOpportunitiesByDate(opportunities), []);
+  const sortedOpportunities = useMemo(() => sortOpportunitiesByDate(opportunities), [opportunities]);
 
   const filteredOpportunities = sortedOpportunities.filter((opportunity) => {
     const normalizedKeyword = keyword.trim().toLowerCase();
     const searchableText = [
       opportunity.title,
-      opportunity.provider,
+      opportunity.provider_name,
       opportunity.category,
-      opportunity.categoryGroup,
+      getCategoryGroup(opportunity.category),
       opportunity.description,
       opportunity.city,
     ]
@@ -48,9 +55,11 @@ export function OpportunitiesClient({
 
     const matchesKeyword = normalizedKeyword.length === 0 || searchableText.includes(normalizedKeyword);
     const numericAge = Number(age);
-    const matchesAge = age === "" || (numericAge >= opportunity.ageMin && numericAge <= opportunity.ageMax);
-    const matchesCategory = category === "" || opportunity.categoryGroup === getCategoryGroup(category);
-    const matchesFree = !freeOnly || opportunity.isFree;
+    const matchesAge = age === "" || (
+      numericAge >= (opportunity.age_min ?? 0) && numericAge <= (opportunity.age_max ?? 18)
+    );
+    const matchesCategory = category === "" || getCategoryGroup(opportunity.category) === getCategoryGroup(category);
+    const matchesFree = !freeOnly || isOpportunityFree(opportunity);
 
     return matchesKeyword && matchesAge && matchesCategory && matchesFree;
   });
@@ -68,7 +77,7 @@ export function OpportunitiesClient({
       </div>
 
       <section className="mt-6 rounded-[1.5rem] border border-orange-100 bg-white p-4 shadow-[0_16px_42px_rgba(194,65,12,0.10)]">
-        <div className="grid gap-4 md:grid-cols-[1.3fr_0.7fr_0.9fr_auto] md:items-end">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 lg:items-end">
           <label className="block">
             <span className="text-sm font-bold text-slate-700">Search</span>
             <input
@@ -120,6 +129,12 @@ export function OpportunitiesClient({
           </label>
         </div>
       </section>
+
+      {dataUnavailable ? (
+        <p className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-center font-semibold text-amber-900">
+          {opportunityDataUnavailableMessage}
+        </p>
+      ) : null}
 
       <section className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {filteredOpportunities.map((opportunity) => (

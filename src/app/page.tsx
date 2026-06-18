@@ -4,15 +4,20 @@ import { HomeSearch } from "@/components/HomeSearch";
 import { OpportunityStickerBadge } from "@/components/OpportunityStickerBadge";
 import { InfoIcon } from "@/components/OpportunityUi";
 import {
-  getCategoryActivityCount,
+  getActiveOpportunities,
+  getCategoryGroup,
   getCategoryIcon,
+  getOpportunityCost,
+  getProviderName,
   isOpportunityUpcoming,
-  opportunities,
   sortOpportunitiesByDate,
 } from "@/lib/opportunities";
 import type { Opportunity } from "@/types/opportunity";
 
-const categoryCards = [
+function getCategoryCards(opportunities: Opportunity[]) {
+  const getCategoryActivityCount = (category: string) =>
+    opportunities.filter((item) => getCategoryGroup(item.category) === category).length;
+  return [
   {
     title: "Sports",
     icon: getCategoryIcon("Sports"),
@@ -45,7 +50,8 @@ const categoryCards = [
     count: getCategoryActivityCount("Camps"),
     className: "bg-orange-50 text-orange-700",
   },
-].sort((first, second) => second.count - first.count || first.title.localeCompare(second.title));
+  ].sort((first, second) => second.count - first.count || first.title.localeCompare(second.title));
+}
 
 const comingSoon = [
   {
@@ -93,7 +99,7 @@ function formatDate(value: string | undefined) {
   }).format(date);
 }
 
-function getUpcomingActivities() {
+function getUpcomingActivities(opportunities: Opportunity[]) {
   return sortOpportunitiesByDate(opportunities)
     .filter((opportunity) => isOpportunityUpcoming(opportunity))
     .slice(0, 6);
@@ -107,42 +113,42 @@ function UpcomingCard({ opportunity }: { opportunity: Opportunity }) {
       <div>
         <div className="flex items-start justify-between gap-3">
           <span className="rounded-full bg-orange-50 px-3 py-1 text-xs font-black text-orange-700">
-            {getCategoryIcon(opportunity.categoryGroup)} {opportunity.category}
+            {getCategoryIcon(opportunity.category)} {opportunity.category ?? "Other"}
           </span>
           <OpportunityStickerBadge opportunity={opportunity} />
         </div>
         <h3 className="mt-4 text-xl font-black leading-snug text-slate-950">
-          <Link href={`/opportunities/${opportunity.id}`} className="hover:text-orange-700">{opportunity.title}</Link>
+          <Link href={`/opportunities/${opportunity.slug}`} className="hover:text-orange-700">{opportunity.title}</Link>
         </h3>
-        <p className="mt-1 text-sm font-bold text-slate-600">{opportunity.provider}</p>
+        <p className="mt-1 text-sm font-bold text-slate-600">{getProviderName(opportunity)}</p>
 
         <dl className="mt-5 grid grid-cols-2 gap-3 text-sm">
           <div className="flex items-center gap-2">
             <InfoIcon name="age" />
             <div>
               <dt className="font-black text-slate-500">Ages</dt>
-              <dd className="mt-1 text-slate-950">{opportunity.ageMin}-{opportunity.ageMax}</dd>
+              <dd className="mt-1 text-slate-950">{opportunity.age_min ?? 0}-{opportunity.age_max ?? 18}</dd>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <InfoIcon name="calendar" />
             <div>
               <dt className="font-black text-slate-500">Starts</dt>
-              <dd className="mt-1 text-slate-950">{formatDate(opportunity.startDate)}</dd>
+              <dd className="mt-1 text-slate-950">{formatDate(opportunity.start_date ?? undefined)}</dd>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <InfoIcon name="location" />
             <div>
               <dt className="font-black text-slate-500">City</dt>
-              <dd className="mt-1 text-slate-950">{opportunity.city}</dd>
+              <dd className="mt-1 text-slate-950">{opportunity.city ?? "Unknown"}</dd>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <InfoIcon name="cost" />
             <div>
               <dt className="font-black text-slate-500">Cost</dt>
-              <dd className="mt-1 text-slate-950">{opportunity.cost}</dd>
+              <dd className="mt-1 text-slate-950">{getOpportunityCost(opportunity)}</dd>
             </div>
           </div>
         </dl>
@@ -151,15 +157,17 @@ function UpcomingCard({ opportunity }: { opportunity: Opportunity }) {
         </div>
       </div>
 
-      <Link href={`/opportunities/${opportunity.id}`} className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-rose-50 px-4 text-sm font-black text-orange-700 transition group-hover:bg-orange-600 group-hover:text-white">
+      <Link href={`/opportunities/${opportunity.slug}`} className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-rose-50 px-4 text-sm font-black text-orange-700 transition group-hover:bg-orange-600 group-hover:text-white">
         View Details <span className="ml-2" aria-hidden="true">→</span>
       </Link>
     </article>
   );
 }
 
-export default function Home() {
-  const upcomingActivities = getUpcomingActivities();
+export default async function Home() {
+  const opportunities = await getActiveOpportunities();
+  const upcomingActivities = getUpcomingActivities(opportunities);
+  const categoryCards = getCategoryCards(opportunities);
 
   return (
     <main>

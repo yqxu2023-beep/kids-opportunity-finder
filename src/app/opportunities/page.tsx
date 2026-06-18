@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
 import { OpportunitiesClient } from "./OpportunitiesClient";
+import {
+  getActiveOpportunities,
+  hasOpportunityDataConfiguration,
+} from "@/lib/opportunities";
 
 export const metadata: Metadata = {
   title: "Browse Opportunities | Kids Opportunity Finder",
@@ -30,6 +34,7 @@ export default async function OpportunitiesPage({ searchParams }: OpportunitiesP
   const initialAge = readFirstParam(params.age);
   const initialCategory = readFirstParam(params.category);
   const initialFreeOnly = readFirstParam(params.free) === "true";
+  const opportunities = await getActiveOpportunities({ includeExpired: true });
 
   return (
     <OpportunitiesClient
@@ -37,6 +42,8 @@ export default async function OpportunitiesPage({ searchParams }: OpportunitiesP
       initialAge={initialAge}
       initialCategory={initialCategory}
       initialFreeOnly={initialFreeOnly}
+      opportunities={opportunities}
+      dataUnavailable={!hasOpportunityDataConfiguration()}
     />
   );
 }

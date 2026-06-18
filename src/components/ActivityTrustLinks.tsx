@@ -1,5 +1,5 @@
 import { ReportIssueLink } from "@/components/ReportIssueLink";
-import { formatOpportunityDate } from "@/lib/opportunities";
+import { formatOpportunityDate, getOfficialUrl } from "@/lib/opportunities";
 import type { Opportunity } from "@/types/opportunity";
 
 export function ActivityTrustLinks({
@@ -13,10 +13,10 @@ export function ActivityTrustLinks({
 }) {
   return (
     <div className="text-xs font-bold text-slate-600">
-      <p>Last updated: {formatOpportunityDate(opportunity.lastUpdated)}</p>
+      <p>Last updated: {formatOpportunityDate(opportunity.updated_at)}</p>
       <div className={`mt-2 flex flex-wrap ${pillActions ? "gap-2" : "gap-x-4 gap-y-2"}`}>
         <a
-          href={opportunity.officialUrl}
+          href={getOfficialUrl(opportunity)}
           target="_blank"
           rel="noreferrer"
           className={pillActions
