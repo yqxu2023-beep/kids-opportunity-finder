@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
 import { OpportunitiesClient } from "./OpportunitiesClient";
+
+export const metadata: Metadata = {
+  title: "Browse Opportunities | Kids Opportunity Finder",
+  description: "Browse kids and youth programs, camps, events, and learning opportunities.",
+  alternates: { canonical: "/opportunities" },
+};
 
 type OpportunitiesPageProps = {
   searchParams: Promise<{

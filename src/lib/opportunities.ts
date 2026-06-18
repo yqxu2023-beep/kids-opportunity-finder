@@ -1,4 +1,5 @@
 import opportunitiesData from "@/data/opportunities.json";
+import { buildGmailComposeUrl } from "@/lib/email";
 import type { Opportunity } from "@/types/opportunity";
 
 type RawOpportunity = {
@@ -183,28 +184,23 @@ export function formatOpportunityDate(value: string | undefined) {
 }
 
 export function getOutdatedReportUrl(
-  opportunity: Pick<Opportunity, "id" | "title" | "provider" | "city" | "officialUrl">
+  opportunity: Pick<Opportunity, "id" | "title" | "provider" | "city">,
+  listingUrl = `/opportunities/${opportunity.id}`
 ) {
   const subject = `Report an Issue - ${opportunity.title}`;
   const bodyLines = [
     `Program name: ${opportunity.title}`,
-    `Provider: ${opportunity.provider}`,
-    `City: ${opportunity.city}`,
-    `Listing URL: /opportunities/${opportunity.id}`,
+    `Provider: ${opportunity.provider === "Unknown provider" ? "" : opportunity.provider}`,
+    `City: ${opportunity.city === "Unknown" ? "" : opportunity.city}`,
+    `Listing URL: ${listingUrl}`,
     "",
-    "Issue description:",
-    "",
+    "Issue:",
     "Correct information:",
-    "",
+    "Your name:",
+    "Your contact email:",
   ];
 
-  if (opportunity.officialUrl && opportunity.officialUrl !== "#") {
-    bodyLines.push(`Source link (if available): ${opportunity.officialUrl}`);
-  } else {
-    bodyLines.push("Source link (if available):");
-  }
-
-  return `mailto:kidsopportunityfinder@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyLines.join("\n"))}`;
+  return buildGmailComposeUrl(subject, bodyLines.join("\n"));
 }
 
 export const opportunities = (opportunitiesData as RawOpportunity[]).map(normalizeOpportunity);

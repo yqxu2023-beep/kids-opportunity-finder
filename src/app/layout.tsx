@@ -1,12 +1,26 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { siteConfig } from "@/lib/site";
 import Footer from "../components/Footer";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Kids Opportunity Finder",
-  description:
-    "Find family-friendly activities, camps, sports, STEM programs, and youth opportunities.",
+  metadataBase: new URL(siteConfig.siteUrl),
+  title: siteConfig.siteName,
+  description: siteConfig.description,
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    siteName: siteConfig.siteName,
+    title: siteConfig.siteName,
+    description: siteConfig.description,
+    url: siteConfig.siteUrl,
+  },
+  twitter: {
+    card: "summary",
+    title: siteConfig.siteName,
+    description: siteConfig.description,
+  },
 };
 
 export default function RootLayout({

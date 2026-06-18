@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { buildGmailComposeUrl, contactEmail } from "@/lib/email";
 
 export function SubmitActivityForm() {
   const [status, setStatus] = useState("");
@@ -9,9 +10,9 @@ export function SubmitActivityForm() {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     const lines = ["Provider submission", "", ...Array.from(data.entries()).map(([key, value]) => `${key}: ${value}`)];
-    const subject = "Provider submission - Kids Opportunity Finder";
-    window.location.href = `mailto:kidsopportunityfinder@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(lines.join("\n"))}`;
-    setStatus("Your email app should open with the activity details. Review the message, then send it to complete your submission.");
+    const subject = "Submit or Update an Opportunity";
+    window.open(buildGmailComposeUrl(subject, lines.join("\n")), "_blank", "noopener,noreferrer");
+    setStatus("Gmail should open in a new tab with the activity details. Review the message, then send it to complete your submission.");
   }
 
   const inputClass = "mt-2 w-full rounded-2xl border border-slate-200 bg-orange-50/50 px-4 py-3 outline-none focus:border-orange-400 focus:bg-white focus:ring-4 focus:ring-orange-100";
@@ -35,6 +36,7 @@ export function SubmitActivityForm() {
       <label className="font-bold text-slate-800">Description<textarea required name="Description" rows={5} className={inputClass} /></label>
       <label className="flex items-start gap-3 text-sm font-semibold text-slate-700"><input required type="checkbox" name="Information confirmed" value="Yes" className="mt-1 h-5 w-5" />I confirm that I represent this provider or have permission to share this public information.</label>
       <button className="min-h-12 rounded-full bg-orange-600 px-6 font-black text-white hover:bg-orange-700">Prepare submission email</button>
+      <p className="text-center text-sm text-slate-600">Email fallback: <a className="font-bold text-rose-700 underline underline-offset-4" href={`mailto:${contactEmail}`}>{contactEmail}</a></p>
       {status ? <p role="status" className="rounded-2xl bg-emerald-50 p-4 text-sm font-bold text-emerald-900">{status}</p> : null}
     </form>
   );

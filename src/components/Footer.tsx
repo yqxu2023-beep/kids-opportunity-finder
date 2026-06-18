@@ -1,16 +1,15 @@
 import Link from "next/link";
-
-const contactEmail = "kidsopportunityfinder@gmail.com";
+import { buildGmailComposeUrl, contactEmail } from "@/lib/email";
 
 const footerLinks = [
   { href: "/opportunities", label: "Opportunities" },
   { href: "/for-providers", label: "For Providers" },
   {
-    href: `mailto:${contactEmail}?subject=Report%20an%20issue%20-%20Kids%20Opportunity%20Finder`,
+    href: buildGmailComposeUrl("Report an issue - Kids Opportunity Finder", "Issue:\n\nCorrect information:\n\nYour name:\nYour contact email:"),
     label: "Report an issue",
   },
   {
-    href: `mailto:${contactEmail}?subject=Contact%20Kids%20Opportunity%20Finder`,
+    href: buildGmailComposeUrl("Contact Kids Opportunity Finder", "Message:"),
     label: "Contact",
   },
 ];
@@ -37,7 +36,7 @@ export default function Footer() {
             className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-bold text-slate-700 sm:justify-end"
           >
             {footerLinks.map((link) => (
-              <Link key={link.label} href={link.href} className="transition hover:text-rose-700">
+              <Link key={link.label} href={link.href} target={link.href.startsWith("https://mail.google.com") ? "_blank" : undefined} rel={link.href.startsWith("https://mail.google.com") ? "noopener noreferrer" : undefined} className="transition hover:text-rose-700">
                 {link.label}
               </Link>
             ))}
@@ -46,6 +45,7 @@ export default function Footer() {
 
         <p className="mt-5 border-t border-slate-200 pt-4 text-xs leading-5 text-slate-500">
           &copy; 2026 Kids Opportunity Finder. Please confirm program details with the provider.
+          {" "}Email: <a className="font-bold underline underline-offset-2" href={`mailto:${contactEmail}`}>{contactEmail}</a>
         </p>
       </div>
     </footer>

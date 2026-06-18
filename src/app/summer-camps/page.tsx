@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { ActivityLandingPage } from "@/components/ActivityLandingPage";
 import { opportunities, sortOpportunitiesByDate } from "@/lib/opportunities";
 
-export const metadata: Metadata = { title: "Summer Camps in Yellowknife | Kids Opportunity Finder", description: "Find summer camps and school-break programs for children and teens in Yellowknife and nearby communities." };
+export const metadata: Metadata = { title: "Summer Camps in Yellowknife | Kids Opportunity Finder", description: "Find summer camps and school-break programs for children and teens in Yellowknife and nearby communities.", alternates: { canonical: "/summer-camps" } };
 
 export default function SummerCampsPage() {
   const activities = sortOpportunitiesByDate(opportunities.filter((item) => item.categoryGroup === "Camps"));

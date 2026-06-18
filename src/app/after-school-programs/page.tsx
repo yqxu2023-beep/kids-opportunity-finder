@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { ActivityLandingPage } from "@/components/ActivityLandingPage";
 import { opportunities, sortOpportunitiesByDate } from "@/lib/opportunities";
 
-export const metadata: Metadata = { title: "After-School Programs in Yellowknife | Kids Opportunity Finder", description: "Find after-school activities and weekday programs for kids and teens in Yellowknife." };
+export const metadata: Metadata = { title: "After-School Programs in Yellowknife | Kids Opportunity Finder", description: "Find after-school activities and weekday programs for kids and teens in Yellowknife.", alternates: { canonical: "/after-school-programs" } };
 
 export default function AfterSchoolProgramsPage() {
   const activities = opportunities.filter((item) => /after.?school|weekday|monday|tuesday|wednesday|thursday|friday/i.test(`${item.title} ${item.description} ${item.schedule}`));

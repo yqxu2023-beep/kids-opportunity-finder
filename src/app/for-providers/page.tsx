@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import { buildGmailComposeUrl, contactEmail } from "@/lib/email";
 
 export const metadata: Metadata = {
   title: "For Providers | Kids Opportunity Finder",
   description:
     "Share your children and youth programs with local families through Kids Opportunity Finder.",
+  alternates: { canonical: "/for-providers" },
 };
 
 const providerTypes = [
@@ -39,23 +41,20 @@ const reasonsToSubmit = [
   "Keep community activity information easier to discover",
 ];
 
-const submissionEmailBody = `Program name:
-Organization / provider name:
+const submissionEmailBody = `Organization name:
+Opportunity title:
 Age range:
-Start date:
-End date:
-Time:
-City:
-Location:
+Dates:
 Cost:
+Location:
 Registration link:
-Contact email or phone:
-Short description:
-Poster / flyer link if available:`;
+Contact info:
+Notes:`;
 
-const submissionEmailUrl = `mailto:kidsopportunityfinder@gmail.com?subject=${encodeURIComponent(
-  "Provider submission - Kids Opportunity Finder"
-)}&body=${encodeURIComponent(submissionEmailBody)}`;
+const submissionEmailUrl = buildGmailComposeUrl(
+  "Submit or Update an Opportunity",
+  submissionEmailBody
+);
 
 export default function ForProvidersPage() {
   return (
@@ -97,10 +96,18 @@ export default function ForProvidersPage() {
         </p>
         <a
           href={submissionEmailUrl}
+          target="_blank"
+          rel="noopener noreferrer"
           className="mt-6 inline-flex min-h-14 w-full items-center justify-center rounded-full bg-orange-500 px-8 py-4 text-lg font-semibold text-slate-950 shadow-[0_8px_18px_rgba(194,65,12,0.20)] transition hover:bg-orange-600 hover:shadow-[0_10px_22px_rgba(194,65,12,0.25)] focus:outline-none focus:ring-4 focus:ring-orange-200 sm:w-auto sm:min-w-72"
         >
           Submit an Opportunity
         </a>
+        <p className="mt-3 text-sm text-slate-600">
+          Or email{" "}
+          <a className="font-bold text-rose-700 underline underline-offset-4" href={`mailto:${contactEmail}`}>
+            {contactEmail}
+          </a>
+        </p>
       </section>
     </main>
   );

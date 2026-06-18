@@ -2,10 +2,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ActivityTrustLinks } from "@/components/ActivityTrustLinks";
 import { CostBadge, InfoIcon } from "@/components/OpportunityUi";
+import { ReportIssueLink } from "@/components/ReportIssueLink";
+import { contactEmail } from "@/lib/email";
+import { getSiteUrl, siteConfig } from "@/lib/site";
 import {
   getCategoryIcon,
   getOpportunityById,
-  getOutdatedReportUrl,
   opportunities,
 } from "@/lib/opportunities";
 
@@ -32,8 +34,14 @@ export async function generateMetadata({ params }: OpportunityDetailPageProps) {
   }
 
   return {
-    title: `${opportunity.title} | Kids Opportunity Finder`,
+    title: `${opportunity.title} | ${siteConfig.siteName}`,
     description: opportunity.description,
+    alternates: { canonical: `/opportunities/${opportunity.id}` },
+    openGraph: {
+      title: opportunity.title,
+      description: opportunity.description,
+      url: getSiteUrl(`/opportunities/${opportunity.id}`),
+    },
   };
 }
 
@@ -125,12 +133,18 @@ export default async function OpportunityDetailPage({ params }: OpportunityDetai
 
         <footer className="mt-6 border-t border-slate-100 pt-4 text-xs text-slate-600">
           <span>See something that needs updating? </span>
-          <a
-            href={getOutdatedReportUrl(opportunity)}
+          <ReportIssueLink
+            opportunity={opportunity}
             className="font-bold text-rose-700 underline decoration-rose-200 underline-offset-4 transition hover:text-rose-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600"
           >
             Report an Issue
-          </a>
+          </ReportIssueLink>
+          <span className="mt-2 block">
+            Email fallback:{" "}
+            <a className="font-bold underline underline-offset-4" href={`mailto:${contactEmail}`}>
+              {contactEmail}
+            </a>
+          </span>
         </footer>
       </article>
     </main>

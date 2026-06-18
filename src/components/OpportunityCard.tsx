@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { InfoIcon } from "@/components/OpportunityUi";
 import { OpportunityStickerBadge } from "@/components/OpportunityStickerBadge";
-import { formatOpportunityDate, getCategoryIcon, getOutdatedReportUrl } from "@/lib/opportunities";
+import { ReportIssueLink } from "@/components/ReportIssueLink";
+import { formatOpportunityDate, getCategoryIcon } from "@/lib/opportunities";
 import type { Opportunity } from "@/types/opportunity";
 
 type OpportunityCardProps = { opportunity: Opportunity };
@@ -41,9 +42,9 @@ export function OpportunityCard({ opportunity }: OpportunityCardProps) {
             <a href={opportunity.officialUrl} target="_blank" rel="noreferrer" className="text-sky-800 underline decoration-sky-200 underline-offset-4 hover:text-sky-600">
               Source / Official link
             </a>
-            <a href={getOutdatedReportUrl(opportunity)} className="text-rose-700 underline decoration-rose-200 underline-offset-4 hover:text-rose-600">
+            <ReportIssueLink opportunity={opportunity} className="text-rose-700 underline decoration-rose-200 underline-offset-4 hover:text-rose-600">
               Report outdated info
-            </a>
+            </ReportIssueLink>
           </div>
         </div>
       </div>
