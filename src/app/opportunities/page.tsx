@@ -5,6 +5,9 @@ import {
   hasOpportunityDataConfiguration,
 } from "@/lib/opportunities";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export const metadata: Metadata = {
   title: "Browse Opportunities | Kids Opportunity Finder",
   description: "Browse kids and youth programs, camps, events, and learning opportunities.",

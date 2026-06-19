@@ -30,7 +30,7 @@ export async function getActiveOpportunities(
   let query = supabase
     .from("opportunities")
     .select(opportunityColumns)
-    .eq("status", "active");
+    .eq("status", "published");
 
   if (!includeExpired) {
     query = query.or(`end_date.is.null,end_date.gte.${todayAsDateString()}`);
@@ -61,7 +61,7 @@ export async function getOpportunityBySlug(slug: string): Promise<Opportunity | 
     .from("opportunities")
     .select(opportunityColumns)
     .eq("slug", slug)
-    .eq("status", "active")
+    .eq("status", "published")
     .maybeSingle();
 
   if (error) {
