@@ -17,6 +17,10 @@ const columns = [
 
 function dateOnly(date: Date) { return date.toISOString().slice(0, 10); }
 
+type AdminReviewPageProps = {
+  searchParams: Promise<{ secret?: string | string[] }>;
+};
+
 function OpportunityTable({ rows }: { rows: ReviewOpportunity[] }) {
   if (rows.length === 0) return <p className="mt-3 text-sm text-slate-500">No opportunities in this section.</p>;
   const labels = ["Title", "Provider", "Category", "Ages", "Start", "End", "City", "Status", "Source", "Registration", "Last checked", "Last verified", "Review note"];
@@ -41,7 +45,14 @@ function OpportunityTable({ rows }: { rows: ReviewOpportunity[] }) {
   );
 }
 
-export default async function AdminReviewPage() {
+export default async function AdminReviewPage({ searchParams }: AdminReviewPageProps) {
+  const { secret } = await searchParams;
+  const adminSecret = process.env.ADMIN_SECRET;
+
+  if (!adminSecret || secret !== adminSecret) {
+    return <main className="mx-auto max-w-2xl px-4 py-8"><h1 className="text-2xl font-bold text-slate-950">Access denied</h1></main>;
+  }
+
   const supabase = createMaintenanceClient();
   let rows: ReviewOpportunity[] = [];
   let errorMessage: string | null = null;
