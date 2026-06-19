@@ -4,15 +4,17 @@ import { HomeSearch } from "@/components/HomeSearch";
 import { OpportunityStickerBadge } from "@/components/OpportunityStickerBadge";
 import { InfoIcon } from "@/components/OpportunityUi";
 import {
-  getActiveOpportunities,
   getCategoryGroup,
   getCategoryIcon,
   getOpportunityCost,
+  getPublishedOpportunities,
   getProviderName,
-  isOpportunityUpcoming,
   sortOpportunitiesByDate,
 } from "@/lib/opportunities";
 import type { Opportunity } from "@/types/opportunity";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 function getCategoryCards(opportunities: Opportunity[]) {
   const getCategoryActivityCount = (category: string) =>
@@ -99,10 +101,13 @@ function formatDate(value: string | undefined) {
   }).format(date);
 }
 
-function getUpcomingActivities(opportunities: Opportunity[]) {
-  return sortOpportunitiesByDate(opportunities)
-    .filter((opportunity) => isOpportunityUpcoming(opportunity))
-    .slice(0, 6);
+function getFeaturedAndRecentActivities(opportunities: Opportunity[]) {
+  const sortedOpportunities = sortOpportunitiesByDate(opportunities);
+
+  return [
+    ...sortedOpportunities.filter((opportunity) => opportunity.featured),
+    ...sortedOpportunities.filter((opportunity) => !opportunity.featured),
+  ].slice(0, 6);
 }
 
 function UpcomingCard({ opportunity }: { opportunity: Opportunity }) {
@@ -165,8 +170,8 @@ function UpcomingCard({ opportunity }: { opportunity: Opportunity }) {
 }
 
 export default async function Home() {
-  const opportunities = await getActiveOpportunities();
-  const upcomingActivities = getUpcomingActivities(opportunities);
+  const opportunities = await getPublishedOpportunities();
+  const featuredAndRecentActivities = getFeaturedAndRecentActivities(opportunities);
   const categoryCards = getCategoryCards(opportunities);
 
   return (
@@ -235,9 +240,9 @@ export default async function Home() {
                 Plan your week
               </p>
               <h2 className="mt-2 text-3xl font-black tracking-tight text-slate-950">
-                Upcoming Activities
+                Featured & Recent Activities
               </h2>
-              <p className="mt-2 text-slate-700">Activities coming up soon in Yellowknife.</p>
+              <p className="mt-2 text-slate-700">Published activities from Yellowknife providers.</p>
             </div>
             <Link
               href="/opportunities"
@@ -248,7 +253,7 @@ export default async function Home() {
           </div>
 
           <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-            {upcomingActivities.map((opportunity) => (
+            {featuredAndRecentActivities.map((opportunity) => (
               <UpcomingCard key={opportunity.id} opportunity={opportunity} />
             ))}
           </div>

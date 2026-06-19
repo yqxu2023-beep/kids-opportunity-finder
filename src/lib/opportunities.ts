@@ -49,6 +49,10 @@ export async function getActiveOpportunities(
   return (data ?? []) as unknown as Opportunity[];
 }
 
+export function getPublishedOpportunities(): Promise<Opportunity[]> {
+  return getActiveOpportunities({ includeExpired: true });
+}
+
 export async function getFeaturedOpportunities(): Promise<Opportunity[]> {
   const opportunities = await getActiveOpportunities();
   return opportunities.filter((opportunity) => opportunity.featured);
