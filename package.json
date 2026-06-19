@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "seed:sources": "node scripts/import-sources.mjs",
     "start": "next start",
     "lint": "next lint"
   },

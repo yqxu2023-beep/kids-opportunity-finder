@@ -1,0 +1,26 @@
+[
+  {
+    "provider_name": "City of Yellowknife",
+    "website_url": "https://www.yellowknife.ca/programs-and-registration",
+    "facebook_url": null,
+    "perfectmind_url": "https://yellowknife.perfectmind.com/",
+    "contact_email": null,
+    "source_type": "municipal",
+    "check_frequency": "weekly",
+    "last_checked_at": null,
+    "active": true,
+    "notes": "City programs, events, and recreation registrations."
+  },
+  {
+    "provider_name": "Yellowknife Public Library",
+    "website_url": "https://www.yellowknife.ca/city-facilities/library/",
+    "facebook_url": null,
+    "perfectmind_url": null,
+    "contact_email": null,
+    "source_type": "library",
+    "check_frequency": "weekly",
+    "last_checked_at": null,
+    "active": true,
+    "notes": "Library programs, events, and family resources."
+  }
+]
