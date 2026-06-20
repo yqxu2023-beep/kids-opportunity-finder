@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ActivityTrustLinks } from "@/components/ActivityTrustLinks";
 import { CostBadge, InfoIcon } from "@/components/OpportunityUi";
 import { ReportIssueLink } from "@/components/ReportIssueLink";
+import { SaveActivityButton } from "@/components/SaveActivityButton";
 import { contactEmail } from "@/lib/email";
 import { getSiteUrl, siteConfig } from "@/lib/site";
 import {
@@ -85,6 +86,9 @@ export default async function OpportunityDetailPage({ params }: OpportunityDetai
           {opportunity.title}
         </h1>
         <p className="mt-2 text-base font-semibold text-slate-600 sm:text-lg">{getProviderName(opportunity)}</p>
+        <div className="mt-3">
+          <SaveActivityButton slug={opportunity.slug} />
+        </div>
         <p className="mt-4 text-base leading-7 text-slate-700 sm:text-lg sm:leading-8">{opportunity.description}</p>
 
         <dl className="mt-5 grid gap-4 rounded-[1.25rem] border border-sky-100 bg-slate-50 p-4 sm:grid-cols-2 sm:p-5">

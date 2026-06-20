@@ -3,6 +3,7 @@ import { buildGmailComposeUrl, contactEmail } from "@/lib/email";
 
 const footerLinks = [
   { href: "/opportunities", label: "Opportunities" },
+  { href: "/saved", label: "Saved" },
   { href: "/for-providers", label: "For Providers" },
   {
     href: buildGmailComposeUrl("Report an issue - Kids Opportunity Finder", "Issue:\n\nCorrect information:\n\nYour name:\nYour contact email:"),
@@ -43,7 +44,13 @@ export default function Footer() {
           </nav>
         </div>
 
-        <p className="mt-5 border-t border-slate-200 pt-4 text-xs leading-5 text-slate-500">
+        <div className="mt-5 border-t border-slate-200 pt-4 text-xs leading-5 text-slate-500">
+          <p className="font-bold text-slate-600">Want quick access? Save this site on your phone.</p>
+          <p>iPhone: Tap Share → Add to Home Screen</p>
+          <p>Android: Tap Menu → Add to Home screen</p>
+        </div>
+
+        <p className="mt-4 text-xs leading-5 text-slate-500">
           &copy; 2026 Kids Opportunity Finder. Please confirm program details with the provider.
           {" "}Email: <a className="font-bold underline underline-offset-2" href={`mailto:${contactEmail}`}>{contactEmail}</a>
         </p>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { InfoIcon } from "@/components/OpportunityUi";
 import { OpportunityStickerBadge } from "@/components/OpportunityStickerBadge";
 import { ReportIssueLink } from "@/components/ReportIssueLink";
+import { SaveActivityButton } from "@/components/SaveActivityButton";
 import { formatOpportunityDate, getCategoryIcon, getOfficialUrl, getOpportunityCost, getProviderName } from "@/lib/opportunities";
 import type { Opportunity } from "@/types/opportunity";
 
@@ -17,7 +18,10 @@ export function OpportunityCard({ opportunity }: OpportunityCardProps) {
           <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-bold text-orange-800">
             {getCategoryIcon(opportunity.category)} {opportunity.category ?? "Other"}
           </span>
-          <OpportunityStickerBadge opportunity={opportunity} />
+          <div className="flex flex-col items-end gap-2">
+            <OpportunityStickerBadge opportunity={opportunity} />
+            <SaveActivityButton slug={opportunity.slug} />
+          </div>
         </div>
 
         <h2 className="text-xl font-black text-slate-950">

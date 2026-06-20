@@ -3,6 +3,7 @@ import { ActivityTrustLinks } from "@/components/ActivityTrustLinks";
 import { HomeSearch } from "@/components/HomeSearch";
 import { OpportunityStickerBadge } from "@/components/OpportunityStickerBadge";
 import { InfoIcon } from "@/components/OpportunityUi";
+import { SaveActivityButton } from "@/components/SaveActivityButton";
 import {
   getCategoryGroup,
   getCategoryIcon,
@@ -120,7 +121,10 @@ function UpcomingCard({ opportunity }: { opportunity: Opportunity }) {
           <span className="rounded-full bg-orange-50 px-3 py-1 text-xs font-black text-orange-700">
             {getCategoryIcon(opportunity.category)} {opportunity.category ?? "Other"}
           </span>
-          <OpportunityStickerBadge opportunity={opportunity} />
+          <div className="flex flex-col items-end gap-2">
+            <OpportunityStickerBadge opportunity={opportunity} />
+            <SaveActivityButton slug={opportunity.slug} />
+          </div>
         </div>
         <h3 className="mt-4 text-xl font-black leading-snug text-slate-950">
           <Link href={`/opportunities/${opportunity.slug}`} className="hover:text-orange-700">{opportunity.title}</Link>
