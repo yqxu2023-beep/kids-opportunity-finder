@@ -64,6 +64,9 @@ export default function RootLayout({
               <Link href="/opportunities" className="transition hover:text-rose-700">
                 Browse
               </Link>
+              <Link href="/saved" className="transition hover:text-rose-700">
+                Saved
+              </Link>
               <Link
                 href="/for-providers"
                 className="transition hover:text-rose-700"
