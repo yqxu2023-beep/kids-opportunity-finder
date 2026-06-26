@@ -4,6 +4,7 @@ import { ActivityTrustLinks } from "@/components/ActivityTrustLinks";
 import { CostBadge, InfoIcon } from "@/components/OpportunityUi";
 import { ReportIssueLink } from "@/components/ReportIssueLink";
 import { SaveActivityButton } from "@/components/SaveActivityButton";
+import { buildGoogleCalendarUrl } from "@/lib/calendar";
 import { contactEmail } from "@/lib/email";
 import { getSiteUrl, siteConfig } from "@/lib/site";
 import {
@@ -64,6 +65,9 @@ export default async function OpportunityDetailPage({ params }: OpportunityDetai
   if (opportunity.city && locationLines.at(-1)?.toLocaleLowerCase() !== opportunity.city.toLocaleLowerCase()) {
     locationLines.push(opportunity.city);
   }
+
+  const currentPageUrl = getSiteUrl(`/opportunities/${opportunity.slug}`);
+  const googleCalendarUrl = buildGoogleCalendarUrl(opportunity, currentPageUrl);
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-5 sm:px-6 sm:py-7">
@@ -128,14 +132,27 @@ export default async function OpportunityDetailPage({ params }: OpportunityDetai
           <ActivityTrustLinks opportunity={opportunity} pillActions showReportLink={false} />
         </div>
 
-        <a
-          href={opportunity.registration_url || getOfficialUrl(opportunity)}
-          target="_blank"
-          rel="noreferrer"
-          className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-orange-600 px-7 py-3 text-base font-black text-white shadow-[0_8px_20px_rgba(234,88,12,0.28)] transition hover:bg-orange-700 hover:shadow-[0_10px_24px_rgba(194,65,12,0.34)] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-orange-600 sm:w-auto"
-        >
-          Open Registration Link &rarr;
-        </a>
+        <div className="mt-5">
+          <a
+            href={opportunity.registration_url || getOfficialUrl(opportunity)}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-orange-600 px-7 py-3 text-base font-black text-white shadow-[0_8px_20px_rgba(234,88,12,0.28)] transition hover:bg-orange-700 hover:shadow-[0_10px_24px_rgba(194,65,12,0.34)] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-orange-600 sm:w-auto"
+          >
+            Open Registration Link &rarr;
+          </a>
+
+          {googleCalendarUrl && (
+            <a
+              href={googleCalendarUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 flex w-fit text-sm font-bold text-sky-800 underline decoration-sky-200 underline-offset-4 transition hover:text-sky-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600"
+            >
+              Add to Google Calendar
+            </a>
+          )}
+        </div>
 
         <footer className="mt-6 border-t border-slate-100 pt-4 text-xs text-slate-600">
           <span>See something that needs updating? </span>
